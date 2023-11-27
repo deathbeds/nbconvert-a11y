@@ -53,6 +53,7 @@ the notebook experiennce from browse to edit/focus mode.
 {%- endblock header -%}
 
 {% block body_header %}
+
 <body class="wcag-a wcag-aa wcag-aaa">
     <header aria-label="site header">
         <section id="skip-link">
@@ -99,6 +100,7 @@ the notebook experiennce from browse to edit/focus mode.
     <script src="{{resources.axe_url}}" onload="auditNotebook()"></script>
     {%- endif -%}
 </body>
+
 </html>
 {% endblock body_footer %}
 
@@ -193,6 +195,13 @@ In</span><span aria-hidden="true">[</span><span>{{execution_count}}</span><span 
 </details>
 {% endif %}
 {%- endmacro -%}
+
+{% macro loc(cell) %}{{cell.source.splitlines().__len__()}}{% endmacro%}
+
+{% macro time(t) %}
+{% if t %}{% if t.endswith("Z") %}{% set t = t[:-1] + "+00:00" %}{% endif %}<time
+    datetime={{'"'}}{{datetime.fromisoformat(t).isoformat(timespec="milliseconds" )}}">{{t}}</time>{% endif %}
+{% endmacro %}
 
 {#
 
