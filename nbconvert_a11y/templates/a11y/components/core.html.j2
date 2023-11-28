@@ -12,7 +12,7 @@
 <label id="nb-{{name}}-select">{{title}}
     <select name="{{name}}">
         {% for k, v in values.items() %}
-        <option value="{{v}}">{{k}}</option>
+        <option value="{{v}}" {% if k==default %} selected{% endif %}>{{k}}</option>
         {% endfor %}
         {% for k, v in (disabled or {}).items() %}
         <option value="{{v}}" disabled>{{k}}</option>
@@ -57,3 +57,5 @@
 {% set name="-".join(map(str.lower, title.split()))%}
 <h{{level}} id="nb-{{name}}-label">{{title}}</h{{level}}>
 {% endmacro%}
+
+{% macro hide(object) %}{% if object %} hidden{% endif %}{% endmacro %}
