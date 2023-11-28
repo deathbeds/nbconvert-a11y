@@ -28,11 +28,9 @@ the notebook experiennce from browse to edit/focus mode.
 
 {% block body_header %}
 
-<body class="wcag-a wcag-aa wcag-aaa">
+<body class="wcag-{{resources.wcag_priority.lower()}}">
     <header aria-label="site header">
-        <section id="skip-link">
-            <a href="#cells" tabindex="0" accesskey="1">skip to main content</a>
-        </section>
+        <a href="#1">skip to main content</a>
         {# the skip link is the first tab stop in the site to skip repetitive information
         and directly access the content. #}
         {# site authors with include their site specific headers in this region. #}
@@ -93,6 +91,7 @@ the notebook experiennce from browse to edit/focus mode.
 
 {% macro cell_anchor(i, cell_type)%}
 <a href="#{{i}}" id="{{i}}" aria-labelledby="nb-cell-label {{i}}"
+    {% if resources.accesskey_navigation and (i < 10) %}accesskey="{{i}}"{% endif %}
     aria-describedby="nb-{{cell_type}}-label nb-cell-label cell-{{i}}-loc nb-loc-label">{{i}}</a>
 {% endmacro %}
 
