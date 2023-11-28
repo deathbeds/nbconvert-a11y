@@ -76,19 +76,12 @@ textarea {
 textarea[name=source] {
     box-sizing: border-box;
     width: 100%;
+    resize: vertical;
 }
 
-#cells+table,
-#cells tr:first-child,
-#cells .cell>.nb-loc,
-#cells .cell.markdown>.nb-source,
-#cells .nb-cell_type,
-#cells .nb-metadata,
-#cells .nb-execution_count,
-#cells .nb-start,
-#cells .nb-end,
-:not(.wcag-aaa) #cells details>summary[inert]~textarea[name=source],
-.wcag-aaa #cells textarea[name=source]~*,
+.wcag-a #cells details>summary[inert]~textarea[name=source],
+.wcag-aa #cells details>summary[inert]~textarea[name=source],
+.wcag-aaa #cells details>summary[inert]~textarea[name=source]~*,
 #cells details>summary:not([inert])~textarea[name=source]~* {
     display: none;
 }
