@@ -6,38 +6,17 @@
     --nb-background-color-light: #FFFFFF;
     --nb-margin: 5%;
     --nb-font-size: 16px;
+    --nb-font-family: serif;
     --nb-line-height: 1.5;
 }
 
 body {
     font-size: var(--nb-font-size);
-    overflow-x: hidden;
+    font-family: var(--nb-font-family);
     accent-color: var(--nb-accent-color);
     margin-left: var(--nb-margin);
     margin-right: var(--nb-margin);
     line-height: var(--nb-line-height);
-}
-
-/* satisfy AA 2.5.8 minimum target requirement */
-.wcag-aa button,
-.wcag-aa input[type=checkbox] {
-    min-height: 24px;
-    min-width: 24px;
-}
-
-.wcag-aa a {
-    font-size: max(24px, var(--nb-font-size));
-}
-
-/* satisfy AAA 2.5.5 */
-.wcag-aaa button,
-.wcag-aaa input[type=checkbox] {
-    min-height: 44px;
-    min-width: 44px;
-}
-
-.wcag-aaa a {
-    font-size: max(44px, var(--nb-font-size));
 }
 
 /* align checkboxes with buttons */
@@ -65,8 +44,15 @@ summary[inert]::marker {
     content: "";
 }
 
-textarea {
+input,
+select,
+button {
     font-family: inherit;
+    font-size: inherit;
+}
+
+textarea {
+    font-family: monospace;
     font-size: inherit;
     line-height: inherit;
     overflow: auto;
@@ -79,20 +65,13 @@ textarea[name=source] {
     resize: vertical;
 }
 
-.wcag-a #cells details>summary[inert]~textarea[name=source],
-.wcag-aa #cells details>summary[inert]~textarea[name=source],
-.wcag-aaa #cells details>summary[inert]~textarea[name=source]~*,
-#cells details>summary:not([inert])~textarea[name=source]~* {
-    display: none;
-}
-
 .cell:focus-within,
 :focus-visible {
     outline: max(var(--nb-focus-width), 1px) solid;
     box-shadow: 0 0 0 calc(2 * max(var(--nb-focus-width), 1px));
 }
 
-legend:not(:focus):not(:active),
+legend:not(:focus-within):not(:active),
 details.log:not([open])+table,
 .visually-hidden:not(:focus-within):not(:active) {
     clip: rect(0 0 0 0);
@@ -106,4 +85,33 @@ details.log:not([open])+table,
 
 #nb-settings>form>* {
     display: block;
+}
+
+/* satisfy AA 2.5.8 minimum target requirement */
+.wcag-aa button,
+.wcag-aa input[type=checkbox] {
+    min-height: 24px;
+    min-width: 24px;
+}
+
+.wcag-aa a {
+    font-size: max(24px, var(--nb-font-size));
+}
+
+/* satisfy AAA 2.5.5 */
+.wcag-aaa button,
+.wcag-aaa input[type=checkbox] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+.wcag-aaa a {
+    font-size: max(44px, var(--nb-font-size));
+}
+
+.wcag-a #cells details>summary[inert]~textarea[name=source],
+.wcag-aa #cells details>summary[inert]~textarea[name=source],
+.wcag-aaa #cells details>summary[inert]~textarea[name=source]~*,
+#cells details>summary:not([inert])~textarea[name=source]~* {
+    display: none;
 }
