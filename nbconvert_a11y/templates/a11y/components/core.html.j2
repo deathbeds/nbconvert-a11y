@@ -9,7 +9,7 @@
 {% if isinstance(disabled, [].__class__) %}
 {% set disabled = dict(zip(disabled, disabled))%}
 {% endif %}
-<label id="nb-{{name}}-select">{%- if not hide_label -%}{{title}}{%- endif -%}
+<label id="nb-{{name}}-select">{{title}}
     <select name="{{name}}">
         {% for k, v in values.items() %}
         <option value="{{v}}">{{k}}</option>

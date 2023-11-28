@@ -1,7 +1,7 @@
-{# 
-    settings provides multiple screen reader navigation techniques when the dialog is active.
-    
- #}
+{#
+settings provides multiple screen reader navigation techniques when the dialog is active.
+
+#}
 
 {% from "a11y/components/core.html.j2" import h, radiogroup, select, activity_log, input_number, checkbox, dialog_close
 %}
@@ -16,7 +16,7 @@
                 <ul aria-labelledby="nb-notebook-layout-label">
                     <li>{{select("color scheme", {"light mode": "light", "dark mode": "dark"})}}</li>
                     <li>{{input_number("margin", 5, min=0, max=40, step=5, extra_title="%")}}</li>
-                    <li>{{input_number("line height", 1.5, min=0.5, max=3, step=0.1, extra_title="%")}}</li>
+                    <li>{{input_number("line height", 1.5, min=0.5, max=3, step=0.1)}}</li>
                     <li>{{select("cell navigation", values="list table landmark presentation".split(), disabled="grid
                         treegrid
                         tree".split())}}</li>
@@ -28,14 +28,11 @@
                     <li>{{select("font size", "xx-small x-small small medium large x-large xx-large".split(),
                         "medium")}}</li>
                     <li>
-                        {{h(3, "font family")}}
-                        <ul aria-labelledby="nb-font-family-label">
-                            <li>
-                                {{select("font style", "serif sans-serif".split(), hide_label=True)}}
-                            </li>
-                        </ul>
+                    <li>
+                        {{select("font style", "serif sans-serif".split())}}
                     </li>
                 </ul>
+            </li>
             </li>
             <li>
                 {{h(2, "sound settings")}}
