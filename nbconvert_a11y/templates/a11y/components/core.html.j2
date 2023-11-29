@@ -26,9 +26,9 @@
 <details class="log">
     <summary><span {% if id %}id="nb-activity-log-label" {% endif %}>activity log</span></summary>
 </details>
-<table aria-live="polite" aria-labelledby="nb-activity-log-label">
+<table aria-live="polite">
     <tr>
-        <th>time</th>
+        <th hidden>time</th>
         <td>message</td>
         {# all forward behaviors should be reversible except code execution #}
         {# <td>action</td> #}

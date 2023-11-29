@@ -88,7 +88,7 @@ function activityLog(msg, silent = false, first = false) {
                 td = document.createElement("td"),
                 out = document.createElement("output"),
                 now = Date.now();
-            time.setAttribute("datetime", now), time.setAttribute("aria-hidden", "true");
+            time.setAttribute("datetime", now), th.setAttribute("aria-live", "off"), th.setAttribute("hidden", null);
             time.textContent = now;
             body.append(tr), th.append(time), tr.append(th), tr.append(td), td.append(out);
             silent ? out.setAttribute("aria-live", "off") : null;
