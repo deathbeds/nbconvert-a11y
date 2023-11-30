@@ -27,6 +27,7 @@ the notebook experiennce from browse to edit/focus mode.
 {% endblock extra_css %}
 
 {% block body_header %}
+
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header aria-label="site header">
         <a href="#1" id="TOP">skip to main content</a>
@@ -36,7 +37,7 @@ the notebook experiennce from browse to edit/focus mode.
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
         {% endblock body_header %}
 
-        {% block body_footer %}
+        {% block body_footer scoped %}
         {# dialogs need to be outside the form because we cant nest forms #}
         <dialog id="nb-metadata">
             <form method="dialog">

@@ -1,8 +1,29 @@
+{# # core accessible components
+
+this document provides collections of macros that can be used to provide tested accessible experiences.
+these core components use aria first principles to provide accessible components.
+a to do is individual testing of each of the components, but writing those tests means 
+we've been success doing other things
+
+developers should be aware that this template should imported `with context`. for example,
+`"a11y/components/audit.html.j2"`
+
+```html
+{% from "a11y/components/core.html.j2" import dialog_close, multiselect with context%}
+```
+
+in this specific application that context really isn't necessary. 
+at some point effort should be put into separating context dependent and independent macros.
+
+ #}
+
+{% from "a11y/components/displays.html.j2" import cell_display_priority with context %}
 {% macro select(title, values={}, default=None, disabled=None, hide_label=False) %}
 {% set name="-".join(map(str.lower, title.split()))%}
 {% if default == None %}
 {% set default = next(iter(values), None)%}
 {% endif %}
+
 {% if isinstance(values, [].__class__) %}
 {% set values = dict(zip(values, values))%}
 {% endif %}
