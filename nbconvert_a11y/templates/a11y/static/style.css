@@ -83,7 +83,7 @@ details.log:not([open])+table,
     width: 1px;
 }
 
-#nb-settings>form>* {
+dialog form>* {
     display: block;
 }
 
