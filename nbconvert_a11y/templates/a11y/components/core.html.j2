@@ -2,7 +2,7 @@
 
 this document provides collections of macros that can be used to provide tested accessible experiences.
 these core components use aria first principles to provide accessible components.
-a to do is individual testing of each of the components, but writing those tests means 
+a to do is individual testing of each of the components, but writing those tests means
 we've been success doing other things
 
 developers should be aware that this template should imported `with context`. for example,
@@ -12,12 +12,13 @@ developers should be aware that this template should imported `with context`. fo
 {% from "a11y/components/core.html.j2" import dialog_close, multiselect with context%}
 ```
 
-in this specific application that context really isn't necessary. 
+in this specific application that context really isn't necessary.
 at some point effort should be put into separating context dependent and independent macros.
 
- #}
+#}
 
 {% from "a11y/components/displays.html.j2" import cell_display_priority with context %}
+
 {% macro select(title, values={}, default=None, disabled=None, hide_label=False) %}
 {% set name="-".join(map(str.lower, title.split()))%}
 {% if default == None %}
@@ -105,8 +106,8 @@ at some point effort should be put into separating context dependent and indepen
 
 {% macro cell_anchor(i, cell_type, hidden=False)%}
 <a href="#{{i}}" id="{{i}}" aria-labelledby="nb-cell-label {{i}}" {% if resources.accesskey_navigation and (i < 10)
-    %}accesskey="{{i}}" {% endif %}
-    aria-describedby="nb-{{cell_type}}-label nb-cell-label cell-{{i}}-loc nb-loc-label" {{hide(hidden)}}>{{i}}</a>
+    %}accesskey="{{i}}" {% endif %} aria-describedby="nb-{{cell_type}}-label nb-cell-label cell-{{i}}-loc nb-loc-label"
+    {{hide(hidden)}}>{{i}}</a>
 {% endmacro %}
 
 {% macro cell_form(i, cell_type, hidden=True) %}
@@ -121,16 +122,19 @@ that would include talking to the kernel. #}
 {% endmacro %}
 
 {% macro cell_cell_type(i, cell_type, hidden=False) %}
-<select form="cell-{{i}}" name="cell_type" aria-describedby="nb-cell_type-desc" {{hide(hidden)}}>
-    <option value="markdown" {%- if cell_type=="markdown" %} selected{% endif%}>markdown</option>
-    <option value="code" {%- if cell_type=="code" %} selected{% endif%}>code</option>
-    <option value="raw" {%- if cell_type=="raw" %} selected{% endif%}>raw</option>
-</select>
-<span id="cell-{{i}}-cell_type" {{hide(hidden)}}>{{cell_type}}</span>
+{% set selected = ' selected id="cell-{}-cell_type"'.format(i) %}
+<label id="nb-cell-{{i}}-select" {{hide(hidden)}}>cell type
+    <select name="cell_type" form="cell-{{i}}">
+        <option value="markdown" {%- if cell_type=="markdown" %}{{selected}}{% endif%}>markdown</option>
+        <option value="code" {%- if cell_type=="code" %}{{selected}}{% endif%}>code</option>
+        <option value="raw" {%- if cell_type=="raw" %}{{selected}}{% endif%}>raw</option>
+    </select>
+</label>
 {% endmacro %}
 
 {% macro cell_execution_count(i, execution_count, hidden=False) %}
-<output form="cell-{{i}}" name="execution_count" id="cell-{{i}}-execution_count" {{hide(hidden)}}>#{{execution_count}}</output>
+<output form="cell-{{i}}" name="execution_count" id="cell-{{i}}-execution_count"
+    {{hide(hidden)}}>#{{execution_count}}</output>
 {% endmacro %}
 
 
