@@ -27,16 +27,11 @@ config_notebooks_aa = mark.parametrize(
     "config,notebook",
     [
         param(
-            (CONFIGURATIONS / (a := "a11y")).with_suffix(".py"),
-            (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
-            id="-".join((b, a)),
-        ),
-        param(
             (CONFIGURATIONS / (a := "default")).with_suffix(".py"),
             (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
             marks=[SKIPCI, TPL_NOT_ACCESSIBLE],
             id="-".join((b, a)),
-        ),
+        )
     ],
 )
 
@@ -49,8 +44,14 @@ config_notebooks_aaa = mark.parametrize(
             id="-".join(
                 (b, a),
             ),
-            marks=[TPL_NOT_ACCESSIBLE],
-        )
+        ),
+        param(
+            (CONFIGURATIONS / (a := "section")).with_suffix(".py"),
+            (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
+            id="-".join(
+                (b, a),
+            ),
+        ),
     ],
 )
 
