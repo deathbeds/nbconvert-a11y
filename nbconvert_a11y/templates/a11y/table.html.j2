@@ -1,5 +1,6 @@
 {%- extends 'a11y/base.html.j2' -%}
-{% from "a11y/components/core.html.j2" import hide, time, loc, cell_anchor, cell_execution_count, cell_cell_type,
+{% from "a11y/components/core.html.j2" import hide, time, loc %}
+{% from "a11y/components/cell.html.j2" import cell_anchor, cell_execution_count, cell_cell_type,
 cell_form, cell_source, cell_metadata, cell_output with context%}
 {% set COLUMNS = ["index", "execution_count", "cell_type", "toolbar", "started_at", "completed_at", "source", "loc",
 "metadata", "outputs"] %}

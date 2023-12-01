@@ -8,7 +8,7 @@ the list elements can become trees with collapsible user interactions.
 
 #}
 {%- extends 'a11y/base.html.j2' -%}
-{% from "a11y/components/core.html.j2" import cell_section with context%}
+{% from "a11y/components/cell.html.j2" import cell_section with context%}
 
 {% block body_loop %}
 {# the most consistent implementation would connect the input visibility to a form #}
