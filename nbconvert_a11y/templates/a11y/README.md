@@ -51,3 +51,13 @@ there have been, and will be, discussions about web components in computational 
 * https://marcysutton.com/accessibility-and-the-shadow-dom
 
 having a reference implementation using the `template` and `slot` tags to inspect the shadow dom accessibility implications based on current reference implementations. we'd benefit to learn how the assistive experience may suffer if a first or second principle shadow do approaches were used. 
+
+
+## web content accessibility guidelines as a user interaction
+
+the intent of these templates is too begin with priority aaa compliant substrates for content in computational notebooks. "should we target priority aaa? couldn't we make an easier goal." is a common sentiment in retrofitting accessibility. our approach targets priority aaa compliance with the ability to remove constraints for those that would prefer less strict accessibility conditions. priority AAA will often benefit low vision and ambulatory conditions, but they may be too much for an abled user.
+
+some examples of progressive accessibility changes:
+
+* using native representation of source code to always satisfy AAA priority versus pygments highlighting when priority AA is preferred.
+* target size has AAA and AA guidelines. target sizes are expected to be larger with AAA compliance and smaller with AA compliance.
