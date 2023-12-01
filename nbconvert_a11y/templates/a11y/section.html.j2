@@ -14,11 +14,11 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
     data-loc="{{cell.source.splitlines().__len__()}}" {% if cell.cell_type=="code" %}
     data-outputs="{{cell.outputs.__len__()}}" {% endif %}>
     {{cell_anchor(loop.index, cell.cell_type)}}
-    {{cell_form(i)}}
-    {{cell_execution_count(loop.index, cell.execution_count)}}
-    {{cell_cell_type(loop.index, cell.cell_type)}}
-    {{cell_source(loop.index, cell.source, cell.cell_type, cell.execution_count)}}
+    {{cell_form(i, hidden=True)}}
+    {{cell_execution_count(loopindex, cell.execution_count, hidden=True)}}
+    {{cell_cell_type(loop.index, cell.cell_type, hidden=True)}}
+    {{cell_source(loop.index, cell.source, cell.cell_type, cell.execution_count, hidden=cell.cell_type != "code")}}
     {{cell_output(loop.index, cell, cell.source, cell.outputs, cell.cell_type, cell.execution_count)}}
-    {{cell_metadata(loop.index, cell.metadata)}}
+    {{cell_metadata(loop.index, cell.metadata, hidden=True)}}
 </{{tag}}>
 {% endmacro%}
