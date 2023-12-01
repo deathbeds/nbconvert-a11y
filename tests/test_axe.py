@@ -4,6 +4,7 @@
 * test the accessibility of nbconvert-a11y dialogs
 """
 
+from json import dumps
 from logging import getLogger
 from pathlib import Path
 
@@ -17,6 +18,7 @@ EXPORTS = HERE / "exports"
 HTML = EXPORTS / "html"
 LOGGER = getLogger(__name__)
 AUDIT = EXPORTS / "audit"
+TREE = AUDIT / "tree"
 
 # ignore mathjax at the moment. we might be able to turne mathjax to have better
 # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
@@ -74,11 +76,16 @@ axe_config_aaa = {
 def test_axe_aa(axe, config, notebook):
     target = get_target_html(config, notebook)
     audit = AUDIT / target.with_suffix(".json").name
+
     axe(Path.as_uri(target)).dump(audit).raises()
 
 
 @config_notebooks_aaa
-def test_axe_aaa(axe, config, notebook):
+def test_axe_aaa(axe, page, config, notebook):
     target = get_target_html(config, notebook)
     audit = AUDIT / target.with_suffix(".json").name
-    axe(Path.as_uri(target), axe_config=axe_config_aaa).dump(audit).raises()
+    tree = TREE / audit.name
+    test = axe(Path.as_uri(target), axe_config=axe_config_aaa).dump(audit)
+    tree.parent.mkdir(parents=True, exist_ok=True)
+    tree.write_text(dumps(page.accessibility.snapshot()))
+    test.raises()
