@@ -1,7 +1,8 @@
 # requires node and axe
 # requires playwright
+from collections import defaultdict
 import dataclasses
-from functools import lru_cache
+from functools import lru_cache, partial
 from json import dumps, loads
 from pathlib import Path
 from shlex import quote, split
@@ -64,6 +65,58 @@ class AxeResults:
 
 
 @dataclasses.dataclass
+class Violation(Exception):
+    id: str
+    impact: str | None
+    tags: list = dataclasses.field(default=None, repr=False)
+    description: str = ""
+    help: str = ""
+    helpUrl: str = ""
+    nodes: list = dataclasses.field(default=None, repr=False)
+    elements: dict = dataclasses.field(default_factory=partial(defaultdict, list))
+    map = {}
+
+    def __class_getitem__(cls, id):
+        if id in cls.map:
+            return cls.map[id]
+        return cls.map.setdefault(id, type(id, (Violation,), {}))
+
+    def __new__(cls, **kwargs):
+        if cls is Violation:
+            target = cls.cast(kwargs)
+            self = Exception.__new__(target)
+            self.__init__(**kwargs)
+            return self
+        self = super().__new__(cls, **kwargs)
+        self.__init__(**kwargs)
+        return self
+
+    @classmethod
+    def cast(cls, data):
+        object = {"__doc__": f"""{data.get("help")} {data.get("helpUrl")}"""}
+        if data["id"] in cls.map:
+            return cls.map.get(data["id"])(**data)
+        bases = ()
+        # these generate types primitves
+        if data["impact"]:
+            bases += (Violation[data["impact"]],)
+        for tag in data["tags"]:
+            bases += (Violation[tag],)
+        return cls.map.setdefault(("-".join(data["impact"], data["id"])), type(data["id"], bases, object))
+
+    def get_elements(self, N=150):
+        for node in self.nodes:
+            key = node["html"]
+            if len(key) > N:
+                key = key[:N] + "..."
+            self.elements[key].extend(node["target"])
+
+    def __str__(self):
+        self.get_elements()
+        return repr(self)
+
+
+@dataclasses.dataclass
 class AxeException(Exception):
     message: str
     target: list
@@ -90,9 +143,8 @@ class AxeException(Exception):
     def from_violations(cls, data):
         out = []
         for violation in (violations := data.get("violations")):
-            for node in violation["nodes"]:
-                for exc in node["any"]:
-                    out.append(cls.new(**exc, target=node["target"]))
+            out.append(Violation(**violation))
+
         return exceptiongroup.ExceptionGroup(f"{len(violations)} accessibility violations", out)
 
 
