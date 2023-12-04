@@ -1,3 +1,10 @@
+"""report axe violations in html content
+
+* an axe fixture to use in pytest
+* a command line application for auditing files.
+
+"""
+
 # requires node and axe
 # requires playwright
 from collections import defaultdict
@@ -38,6 +45,7 @@ tests_axe = {"exclude": [MATHJAX]}
 
 
 def get_npm_directory(package, data=False):
+    """get the path of an npm package in the environment"""
     try:
         info = loads(check_output(split(f"npm ls --long --depth 0 --json {quote(package)}")))
     except CalledProcessError:
@@ -53,7 +61,7 @@ class AxeResults:
 
     def raises(self):
         if self.data["violations"]:
-            raise AxeException.from_violations(self.data)
+            raise Violation.from_violations(self.data)
         return self
 
     def dump(self, file: Path):
@@ -66,8 +74,8 @@ class AxeResults:
 
 @dataclasses.dataclass
 class Violation(Exception):
-    id: str
-    impact: str | None
+    id: str = dataclasses.field(repr=False)
+    impact: str | None = dataclasses.field(repr=False)
     tags: list = dataclasses.field(default=None, repr=False)
     description: str = ""
     help: str = ""
@@ -102,7 +110,9 @@ class Violation(Exception):
             bases += (Violation[data["impact"]],)
         for tag in data["tags"]:
             bases += (Violation[tag],)
-        return cls.map.setdefault(("-".join(data["impact"], data["id"])), type(data["id"], bases, object))
+        return cls.map.setdefault(
+            data["id"], type(("-".join((data["impact"], data["id"]))), bases, object)
+        )
 
     def get_elements(self, N=150):
         for node in self.nodes:
@@ -114,30 +124,6 @@ class Violation(Exception):
     def __str__(self):
         self.get_elements()
         return repr(self)
-
-
-@dataclasses.dataclass
-class AxeException(Exception):
-    message: str
-    target: list
-    data: dict = dataclasses.field(repr=False)
-
-    types = {}
-
-    @classmethod
-    def new(cls, id, impact, message, data, target, **kwargs):
-        if id in cls.types:
-            cls = cls.types.get(id)
-        else:
-            cls = cls.types.setdefault(
-                id,
-                type(
-                    f"{impact.capitalize()}{''.join(map(str.capitalize, id.split('-')))}Exception",
-                    (cls,),
-                    {},
-                ),
-            )
-        return cls(message, target, data)
 
     @classmethod
     def from_violations(cls, data):
