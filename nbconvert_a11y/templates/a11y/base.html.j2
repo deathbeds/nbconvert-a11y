@@ -87,11 +87,13 @@ the notebook experiennce from browse to edit/focus mode.
 <script>
     function openDialogs() {
         let trigger = document.querySelector("#nb-dialogs > details");
-        document.querySelectorAll("#nb-dialogs dialog:not(.log)").forEach(
+        Array.from(
+            document.querySelectorAll("#nb-dialogs dialog:not(.log)")
+        ).reverse().forEach(
             x => {
                 trigger.getAttribute("open") === null ? x.show() : x.close();
             }
-        )
+        );
     }
 </script>
 {% endblock body_footer %}
