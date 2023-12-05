@@ -51,7 +51,7 @@ the notebook experiennce from browse to edit/focus mode.
     add features like run time computation. #}
     {# skip to top is needed for long notebooks.
     it is difficult to access for keyboard users. #}
-    <footer id="nb-dialogs">
+    <section id="nb-dialogs">
         {% if resources.include_settings %}
         <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">Settings</button>
         {% endif %}
@@ -68,17 +68,7 @@ the notebook experiennce from browse to edit/focus mode.
             {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
             {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
         </section>
-        <style>
-            #nb-dialogs details[open]+section {
-                display: flex;
-                flex-direction: column;
-            }
-
-            #nb-dialogs details[open]+section dialog {
-                position: relative;
-            }
-        </style>
-    </footer>
+    </section>
     <footer>
         {{activity_log()}}
         <a href="#TOP" accesskey="0">skip to top</a>

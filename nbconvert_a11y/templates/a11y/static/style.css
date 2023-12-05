@@ -72,7 +72,17 @@ textarea[name=source] {
     box-shadow: 0 0 0 calc(2 * max(var(--nb-focus-width), 1px));
 }
 
-#nb-dialogs details:not([open])+section > dialog:not([open]):not(:focus-within):not(:active),
+#nb-dialogs details[open]+section {
+    display: flex;
+    flex-direction: column;
+}
+
+#nb-dialogs details[open]+section dialog {
+    position: relative;
+}
+
+
+#nb-dialogs details:not([open])+section>dialog:not([open]):not(:focus-within):not(:active),
 legend:not(:focus-within):not(:active),
 details.log:not([open])+table,
 .visually-hidden:not(:focus-within):not(:active) {
