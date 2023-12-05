@@ -21,6 +21,16 @@ xfail = partial(mark.xfail, raises=AllOf, strict=True)
 class DefaultTemplate(TestCase):
     """automated accessibility testing of the default nbconvert light theme."""
 
+    @xfail(reason="there is a lot of complexity in ammending accessibility in many projects")
+    def test_all(self):
+        raise self.axe.run().raises_allof(
+            Violation["serious-color-contrast-enhanced"],
+            Violation["serious-aria-input-field-name"],
+            Violation["serious-color-contrast"],
+            Violation["minor-focus-order-semantics"],
+            Violation["critical-image-alt"],
+        )
+
     @xfail(reason="the default pygments theme has priority AA and AAA color contrast issues.")
     def test_highlight_pygments(self):
         """the default template has two serious color contrast violations.
@@ -41,16 +51,6 @@ class DefaultTemplate(TestCase):
             Violation["serious-aria-input-field-name"],
         )
 
-    @xfail(reason="mathjax provides accessibility through tabindex")
-    def test_mathjax(self):
-        """mathjax has accessibility features. one of them make equation tabbable.
-        this raises a minor axe violation. this errors indicates that we need to consider
-        configuring accessible mathjax experiences."""
-        # https://github.com/Iota-School/notebooks-for-all/issues/81
-        raise self.axe.run({"include": [MATHJAX]}).raises_allof(
-            Violation["minor-focus-order-semantics"],
-        )
-
     # todo test mermaid
     # test widgets kitchen sink
     # test pandas
@@ -62,4 +62,4 @@ class DefaultTemplate(TestCase):
         config=(CONFIGURATIONS / (a := "default")).with_suffix(".py"),
         notebook=(NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
     ):
-        self.axe = axe(Path.as_uri(get_target_html(config, notebook)))
+        self.axe = axe(Path.as_uri(get_target_html(config, notebook))).configure()
