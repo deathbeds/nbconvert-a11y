@@ -138,16 +138,15 @@ class NoAllOfMember(Exception):
 
 @dataclasses.dataclass
 class Axe(Base):
+    """the Axe class is a fluent api for configuring and running accessibility tests."""
+
     page: Any = None
     url: str = None
     results: Any = None
 
     def __post_init__(self):
         self.page.goto(self.url)
-
-    def inject(self):
         self.page.evaluate(get_axe())
-        return self
 
     def configure(self, **config):
         self.page.evaluate(f"window.axe.configure({AxeConfigure(**config).dump()})")
@@ -273,9 +272,8 @@ def get_axe():
 
 @fixture()
 def axe(page):
-    def go(url, tests="document", axe_config=AxeConfigure().dict()):
+    def go(url, **axe_config):
         axe = Axe(page=page, url=url)
-        axe.inject()
         axe.configure(**axe_config)
         return axe
 
