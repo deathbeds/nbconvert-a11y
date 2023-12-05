@@ -26,11 +26,11 @@ class DefaultTemplate(TestCase):
     @xfail(reason="there is a lot of complexity in ammending accessibility in many projects")
     def test_all(self):
         raise self.axe.run().raises_allof(
+            Violation["critical-image-alt"],
             Violation["serious-color-contrast-enhanced"],
             Violation["serious-aria-input-field-name"],
             Violation["serious-color-contrast"],
             Violation["minor-focus-order-semantics"],
-            Violation["critical-image-alt"],
         )
 
     @xfail(reason="the default pygments theme has priority AA and AAA color contrast issues.")
