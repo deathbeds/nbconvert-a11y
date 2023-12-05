@@ -51,19 +51,49 @@ the notebook experiennce from browse to edit/focus mode.
     add features like run time computation. #}
     {# skip to top is needed for long notebooks.
     it is difficult to access for keyboard users. #}
-    <footer>
-        {% if resources.include_settings %}{% include "a11y/components/settings.html.j2" %}{% endif %}
+    <footer id="nb-dialogs">
+        {% if resources.include_settings %}
+        <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">Settings</button>
+        {% endif %}
         {% if resources.include_axe %}<button aria-controls="nb-audit" aria-describedby="nb-audit-desc"
             onclick="openDialog()">audit</button>{% endif %}
         {% if resources.include_help %}<button onclick="openDialog()" aria-controls="nb-help"
             accesskey="?">help</button>{% endif %}
+        <details>
+            <summary onclick="openDialogs()">expand all dialogs</summary>
+        </details>
+        <section>
+            {% if resources.include_settings %}{% include "a11y/components/settings.html.j2" %}{% endif %}
+            {% include "a11y/components/visibility.html.j2"%}
+            {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
+            {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
+        </section>
+        <style>
+            #nb-dialogs details[open]+section {
+                display: flex;
+                flex-direction: column;
+            }
+
+            #nb-dialogs details[open]+section dialog {
+                position: relative;
+            }
+        </style>
+    </footer>
+    <footer>
         {{activity_log()}}
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
-    {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
-    {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
-    {% include "a11y/components/visibility.html.j2"%}
 </body>
+<script>
+    function openDialogs() {
+        let trigger = document.querySelector("#nb-dialogs > details");
+        document.querySelectorAll("#nb-dialogs dialog:not(.log)").forEach(
+            x => {
+                trigger.getAttribute("open") === null ? x.show() : x.close();
+            }
+        )
+    }
+</script>
 {% endblock body_footer %}
 
 {% block footer_js %}
