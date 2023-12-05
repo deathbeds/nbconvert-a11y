@@ -21,6 +21,8 @@ xfail = partial(mark.xfail, raises=AllOf, strict=True)
 class DefaultTemplate(TestCase):
     """automated accessibility testing of the default nbconvert light theme."""
 
+    # test all of the accessibility violations
+    # then incrementally explain them in smaller tests.
     @xfail(reason="there is a lot of complexity in ammending accessibility in many projects")
     def test_all(self):
         raise self.axe.run().raises_allof(
