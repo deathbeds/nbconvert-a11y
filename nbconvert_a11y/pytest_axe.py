@@ -7,6 +7,7 @@
 
 # requires node and axe
 # requires playwright
+from ast import Not
 from collections import defaultdict
 import dataclasses
 from functools import lru_cache, partial
@@ -17,31 +18,79 @@ from subprocess import CalledProcessError, check_output
 from typing import Any
 
 import exceptiongroup
-from attr import dataclass
+from numpy import isin
 from pytest import fixture, mark, param
 
-nbconvert_a11y_DYNAMIC_TEST = "nbconvert_a11y_DYNAMIC_TEST"
-
-axe_config_aa = {
-    "runOnly": ["act", "best-practice", "experimental", "wcag21a", "wcag21aa", "wcag22aa"],
-    "allowedOrigins": ["<same_origin>"],
-}
-
-axe_config_aaa = {
-    "runOnly": [
-        "act",
-        "best-practice",
-        "experimental",
-        "wcag21a",
-        "wcag21aa",
-        "wcag22aa",
-        "wcag2aaa",
-    ],
-    "allowedOrigins": ["<same_origin>"],
-}
-
+# selectors for regions of the notebook
 MATHJAX = "[id^=MathJax]"
-tests_axe = {"exclude": [MATHJAX]}
+JUPYTER_WIDGETS = ".jupyter-widgets"
+OUTPUTS = ".jp-OutputArea-output"
+NO_ALT = "img:not([alt])"
+PYGMENTS = ".highlight"
+
+# axe test tags
+# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#axe-core-tags
+TEST_TAGS = [
+    "ACT",
+    "best-practice",
+    "experimental",
+    "wcag2a",
+    "wcag2aa",
+    "wcag2aaa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa",
+    "TTv5",
+]
+
+
+class Base:
+    """base class for exceptions and models"""
+
+    def __init_subclass__(cls) -> None:
+        dataclasses.dataclass(cls)
+
+    def dict(self):
+        return {k: v for k, v in dataclasses.asdict(self).items() if v is not None}
+
+    def dump(self):
+        return dumps(self.dict())
+
+
+# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#api-name-axeconfigure
+class AxeConfigure(Base):
+    """axe configuration model"""
+
+    branding: str = None
+    reporter: str = None
+    checks: list = None
+    rules: list = None
+    standards: list = None
+    disableOtherRules: bool = None
+    local: str = None
+    axeVersion: str = None
+    noHtml: bool = False
+    allowedOrigins: list = dataclasses.field(default_factory=["<same_origin>"].copy)
+
+
+# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#options-parameter
+class AxeOptions(Base):
+    """axe options model"""
+
+    runOnly: list = dataclasses.field(default_factory=TEST_TAGS.copy)
+    rules: list = None
+    reporter: str = None
+    resultTypes: Any = None
+    selectors: bool = None
+    ancestry: bool = None
+    xpath: bool = None
+    absolutePaths: bool = None
+    iframes: bool = True
+    elementRef: bool = None
+    frameWaitTime: int = None
+    preload: bool = None
+    performanceTimer: bool = None
+    pingWaitTime: int = None
 
 
 def get_npm_directory(package, data=False):
@@ -55,14 +104,17 @@ def get_npm_directory(package, data=False):
     return Path(info.get("dependencies").get(package).get("path"))
 
 
-@dataclass
-class AxeResults:
+class AxeResults(Base):
     data: Any
 
-    def raises(self):
+    def exception(self):
         if self.data["violations"]:
-            raise Violation.from_violations(self.data)
-        return self
+            return Violation.from_violations(self.data)
+
+    def raises(self):
+        exc = self.exception()
+        if exc:
+            raise exc
 
     def dump(self, file: Path):
         if file.is_dir():
@@ -72,8 +124,82 @@ class AxeResults:
         return self
 
 
+class NotAllOf(Exception):
+    ...
+
+
+class AllOf(Exception):
+    ...
+
+
+class NoAllOfMember(Exception):
+    ...
+
+
 @dataclasses.dataclass
-class Violation(Exception):
+class Axe(Base):
+    page: Any = None
+    url: str = None
+    results: Any = None
+
+    def __post_init__(self):
+        self.page.goto(self.url)
+
+    def inject(self):
+        self.page.evaluate(get_axe())
+        return self
+
+    def configure(self, **config):
+        self.page.evaluate(f"window.axe.configure({AxeConfigure(**config).dump()})")
+        return self
+
+    def reset(self):
+        self.page.evaluate(f"""window.axe.reset()""")
+        return self
+
+    def __enter__(self):
+        self.reset()
+
+    def __exit__(self, *e):
+        None
+
+    def run(self, test=None, options=None):
+        self.results = AxeResults(
+            self.page.evaluate(
+                f"""window.axe.run({test and dumps(test) or "document"}, {AxeOptions(**options or {}).dump()})"""
+            )
+        )
+        return self
+
+    def raises(self, allof=None):
+        if allof:
+            self.raises_allof(allof)
+        else:
+            self.results.raises()
+
+    def raises_allof(self, *types, extra=False):
+        found = set()
+        allof = set()
+        exc = self.results.exception()
+        if exc:
+            for t in list(types):
+                for e in exc.exceptions:
+                    allof.add(type(e))
+                    if isinstance(e, t):
+                        found.add(t)
+        not_found = set(types).difference(found)
+        if not_found:
+            raise NotAllOf(f"""{",".join(map(str, not_found))} not raised""")
+        elif not extra:
+            excess = allof.difference(found)
+            if excess:
+                raise NoAllOfMember(f"""{",".join(map(str, excess))} """)
+        result = AllOf(f"""{",".join(map(str, allof))} exceptions raised""")
+        result.__cause__ = exc
+        return result
+
+
+class Violation(Exception, Base):
     id: str = dataclasses.field(repr=False)
     impact: str | None = dataclasses.field(repr=False)
     tags: list = dataclasses.field(default=None, repr=False)
@@ -92,9 +218,7 @@ class Violation(Exception):
     def __new__(cls, **kwargs):
         if cls is Violation:
             target = cls.cast(kwargs)
-            self = Exception.__new__(target)
-            self.__init__(**kwargs)
-            return self
+            return target(**kwargs)
         self = super().__new__(cls, **kwargs)
         self.__init__(**kwargs)
         return self
@@ -102,17 +226,16 @@ class Violation(Exception):
     @classmethod
     def cast(cls, data):
         object = {"__doc__": f"""{data.get("help")} {data.get("helpUrl")}"""}
-        if data["id"] in cls.map:
-            return cls.map.get(data["id"])(**data)
+        name = "-".join((data["impact"], data["id"]))
+        if name in cls.map:
+            return cls.map.get(name)
         bases = ()
         # these generate types primitves
         if data["impact"]:
             bases += (Violation[data["impact"]],)
         for tag in data["tags"]:
             bases += (Violation[tag],)
-        return cls.map.setdefault(
-            data["id"], type(("-".join((data["impact"], data["id"]))), bases, object)
-        )
+        return cls.map.setdefault(name, type(name, bases, object))
 
     def get_elements(self, N=150):
         for node in self.nodes:
@@ -122,8 +245,12 @@ class Violation(Exception):
             self.elements[key].extend(node["target"])
 
     def __str__(self):
-        self.get_elements()
-        return repr(self)
+        try:
+            self.get_elements()
+            return repr(self)
+        except BaseException as e:
+            print(e)
+            raise e
 
     @classmethod
     def from_violations(cls, data):
@@ -144,23 +271,12 @@ def get_axe():
     return (get_npm_directory("axe-core") / "axe.js").read_text()
 
 
-def inject_axe(page):
-    page.evaluate(get_axe())
-
-
-def run_axe_test(page, tests_config=None, axe_config=None):
-    return AxeResults(
-        page.evaluate(
-            f"window.axe.run({tests_config and dumps(tests_config) or 'document'}, {dumps(axe_config or {})})"
-        )
-    )
-
-
 @fixture()
 def axe(page):
-    def go(url, tests=tests_axe, axe_config=axe_config_aa):
-        page.goto(url)
-        inject_axe(page)
-        return run_axe_test(page, tests, axe_config)
+    def go(url, tests="document", axe_config=AxeConfigure().dict()):
+        axe = Axe(page=page, url=url)
+        axe.inject()
+        axe.configure(**axe_config)
+        return axe
 
     return go
