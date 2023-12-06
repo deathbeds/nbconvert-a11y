@@ -142,15 +142,15 @@ class FormExporter(HTMLExporter):
 
     def from_notebook_node(self, nb, resources=None, **kw):
         resources = resources or {}
-        resources.setdefault("include_axe", self.include_axe)
-        resources.setdefault("include_settings", self.include_settings)
-        resources.setdefault("include_help", self.include_help)
-        resources.setdefault("include_toc", self.include_toc)
-        resources.setdefault("wcag_priority", self.wcag_priority)
-        resources.setdefault("accesskey_navigation", self.accesskey_navigation)
-        resources.setdefault("code_theme", THEMES[self.code_theme])
+        resources["include_axe"] = self.include_axe
+        resources["include_settings"] = self.include_settings
+        resources["include_help"] = self.include_help
+        resources["include_toc"] = self.include_toc
+        resources["wcag_priority"] = self.wcag_priority
+        resources["accesskey_navigation"] = self.accesskey_navigation
+        resources["code_theme"] = THEMES[self.code_theme]
+        resources["axe_url"] = self.axe_url
 
-        resources.setdefault("axe_url", self.axe_url)
         html, resources = super().from_notebook_node(nb, resources, **kw)
         html = self.post_process_html(html)
         return html, resources

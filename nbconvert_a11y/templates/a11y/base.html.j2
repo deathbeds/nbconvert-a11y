@@ -19,11 +19,11 @@ the notebook experiennce from browse to edit/focus mode.
 
 {% block notebook_css %}
 <style type="text/css">
-{% include "a11y/static/style.css" %}
+    {% include "a11y/static/style.css" %}
 </style>
 {% for theme in ["light", "dark"] %}
 <style type="text/css" id="nb-{{theme}}-theme" media="{% if loop.index - 1%}not  {% endif %}screen">
-{% include "a11y/static/theme/" + resources.code_theme.format(theme) +".css" %}
+    {% include "a11y/static/theme/"+resources.code_theme.format(theme)+".css" %}
 </style>
 {% endfor %}
 {% endblock notebook_css %}
@@ -31,6 +31,7 @@ the notebook experiennce from browse to edit/focus mode.
 {% block extra_css %}{% endblock %}
 
 {% block body_header %}
+
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header aria-label="site header">
         <a href="#1" id="TOP">skip to main content</a>
@@ -82,7 +83,9 @@ the notebook experiennce from browse to edit/focus mode.
 
 {% block footer_js %}
 {% if resources.include_settings %}
-<script src="settings.js"></script>{% endif %}
+<script>
+    {% include "a11y/static/settings.js" %}
+</script>{% endif %}
 {%- if resources.include_axe -%}
 <script src="{{resources.axe_url}}" onload="auditNotebook()"></script>
 {%- endif -%}
