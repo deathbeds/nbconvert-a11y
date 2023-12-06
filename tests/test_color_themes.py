@@ -30,3 +30,7 @@ def test_dark_themes(lorenz):
     lorenz.page.locator("select[name=color-scheme]").select_option("dark mode")
     lorenz.page.keyboard.press("Escape")
     raise lorenz.run(dict(include=[".nb-source"])).raises_allof(Violation["serious-color-contrast"])
+
+
+def test_light_themes(lorenz):
+    lorenz.run(dict(include=[".nb-source"])).raises()
