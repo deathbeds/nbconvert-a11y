@@ -1,7 +1,7 @@
 from nbconvert import get_exporter
 from pytest import fixture, mark, param
 
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, PYGMENTS, Axe
+from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, PYGMENTS, AllOf, Axe, Violation
 from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, get_target_html
 
 LORENZ = NOTEBOOKS / "lorenz-executed.ipynb"
@@ -20,9 +20,13 @@ def lorenz(page, tmp_path, request):
     yield axe.configure()
 
 
-@mark.xfail
+@mark.xfail(
+    reason="""serious color contrast issues are raised on dark theme because 
+axe is comparing colors to a white background in dark mode.""",
+    raises=AllOf
+)
 def test_dark_themes(lorenz):
     lorenz.page.click("""[aria-controls="nb-settings"]""")
     lorenz.page.locator("select[name=color-scheme]").select_option("dark mode")
     lorenz.page.keyboard.press("Escape")
-    lorenz.run(dict(include=[".nb-source"])).raises()
+    raise lorenz.run(dict(include=[".nb-source"])).raises_allof(Violation["serious-color-contrast"])
