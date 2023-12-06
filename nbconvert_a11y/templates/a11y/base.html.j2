@@ -74,6 +74,11 @@ the notebook experiennce from browse to edit/focus mode.
         {{activity_log()}}
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
+    {% set cell = dict(source="") %}
+    {% set loop = dict(index="") %}
+    <template>
+        {% block any_cell scoped %}{% endblock any_cell%}
+    </template>
 </body>
 <script>
     function openDialogs() {
