@@ -100,6 +100,8 @@ class FormExporter(HTMLExporter):
     include_settings = Bool(True).tag(config=True)
     include_help = Bool(True).tag(config=True)
     include_toc = Bool(True).tag(config=True)
+    include_visibility = Bool(True).tag(config=True)
+    include_upload = Bool(True).tag(config=True)
     wcag_priority = Enum(["AAA", "AA", "A"], "AA").tag(config=True)
     accesskey_navigation = Bool(True).tag(config=True)
     include_cell_index = Bool(True).tag(config=True)
@@ -133,6 +135,8 @@ class FormExporter(HTMLExporter):
         resources.setdefault("include_settings", self.include_settings)
         resources.setdefault("include_help", self.include_help)
         resources.setdefault("include_toc", self.include_toc)
+        resources.setdefault("include_visibility", self.include_visibility)
+        resources.setdefault("include_upload", self.include_upload)
         resources.setdefault("wcag_priority", self.wcag_priority)
         resources.setdefault("accesskey_navigation", self.accesskey_navigation)
 
