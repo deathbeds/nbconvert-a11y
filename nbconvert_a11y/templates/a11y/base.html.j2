@@ -22,7 +22,7 @@ the notebook experiennce from browse to edit/focus mode.
 {% include "a11y/static/style.css" %}
 </style>
 {% for theme in ["light", "dark"] %}
-<style type="text/css" id="nb-{{theme}}-theme"{% if loop.index - 1%} media="none"{% endif %}>
+<style type="text/css" id="nb-{{theme}}-theme" media="{% if loop.index - 1%}not  {% endif %}screen">
 {% include "a11y/static/theme/" + resources.code_theme.format(theme) +".css" %}
 </style>
 {% endfor %}
