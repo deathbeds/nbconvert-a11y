@@ -177,7 +177,22 @@ function toggleActive() {
         activityLog("entering reading mode");
     }
 }
+
+
 document.forms.notebook.elements.edit.addEventListener("change", () => toggleActive())
+
+function openDialogs() {
+    let trigger = document.querySelector("#nb-dialogs > details");
+    Array.from(
+        document.querySelectorAll("#nb-dialogs dialog:not(.log)")
+    ).reverse().forEach(
+        x => {
+            trigger.getAttribute("open") === null ? x.show() : x.close();
+        }
+    );
+    event.target.focus();
+}
+
 setStyle("initialize saved settings.")
 // async function runSource(target) {
 //     {

@@ -78,19 +78,6 @@ the notebook experiennce from browse to edit/focus mode.
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
 </body>
-<script>
-    function openDialogs() {
-        let trigger = document.querySelector("#nb-dialogs > details");
-        Array.from(
-            document.querySelectorAll("#nb-dialogs dialog:not(.log)")
-        ).reverse().forEach(
-            x => {
-                trigger.getAttribute("open") === null ? x.show() : x.close();
-            }
-        );
-        event.target.focus();
-    }
-</script>
 {% endblock body_footer %}
 
 {% block footer_js %}
