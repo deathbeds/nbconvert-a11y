@@ -169,29 +169,12 @@ class FormExporter(HTMLExporter):
 
     @property
     def default_config(self):
-        c = Config(
+        c = super().default_config
+        c.merge(
             {
-                "NbConvertBase": {
-                    "display_data_priority": [
-                        "application/vnd.jupyter.widget-view+json",
-                        "application/javascript",
-                        "text/html",
-                        "text/markdown",
-                        "image/svg+xml",
-                        "text/vnd.mermaid",
-                        "text/latex",
-                        "image/png",
-                        "image/jpeg",
-                        "text/plain",
-                    ]
-                },
                 "CSSHTMLHeaderPreprocessor": {"enabled": False},
             }
         )
-        if super().default_config:
-            c2 = super().default_config.copy()
-            c2.merge(c)
-            c = c2
         return c
 
 
