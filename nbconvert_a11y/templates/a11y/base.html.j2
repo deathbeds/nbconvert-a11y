@@ -18,16 +18,19 @@ the notebook experiennce from browse to edit/focus mode.
 {%- endblock html_head_js -%}
 
 {% block notebook_css %}
-{{ resources.include_css("a11y/static/style.css") }}
+<style type="text/css">
+{% include "a11y/static/style.css" %}
+</style>
+{% for theme in ["light", "dark"] %}
+<style type="text/css" id="nb-{{theme}}-theme"{% if loop.index - 1%} media="none"{% endif %}>
+{% include "a11y/static/theme/" + resources.code_theme.format(theme) +".css" %}
+</style>
+{% endfor %}
 {% endblock notebook_css %}
 
-{% block extra_css %}
-<link id="nb-light-theme" rel="stylesheet" href="light-code.css">
-<link id="nb-dark-theme" disabled rel="stylesheet" href="dark-code.css">
-{% endblock extra_css %}
+{% block extra_css %}{% endblock %}
 
 {% block body_header %}
-
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header aria-label="site header">
         <a href="#1" id="TOP">skip to main content</a>

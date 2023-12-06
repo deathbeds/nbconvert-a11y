@@ -16,6 +16,7 @@ import pygments
 from bs4 import BeautifulSoup
 from nbconvert.exporters.html import HTMLExporter
 from traitlets import Bool, CUnicode, Enum, Unicode
+from traitlets.config import Config
 
 singleton = lru_cache(1)
 
@@ -80,6 +81,17 @@ def get_soup(x):
     return bs4.BeautifulSoup(x, features="html5lib")
 
 
+THEMES = {
+    "a11y": "a11y-{}",
+    "a11y-high-contrast": "a11y-high-contrast-{}",
+    "gh": "github-{}",
+    "gh-colorblind": "github-{}-colorblind",
+    "gh-high": "github-{}-high-contrast",
+    "gotthard": "gotthard-{}",
+    "blinds": "blinds-{}",
+}
+
+
 class FormExporter(HTMLExporter):
     """an embellished HTMLExporter that allows modifications of exporting and the exported.
 
@@ -104,6 +116,7 @@ class FormExporter(HTMLExporter):
     accesskey_navigation = Bool(True).tag(config=True)
     include_cell_index = Bool(True).tag(config=True)
     exclude_anchor_links = Bool(True).tag(config=True)
+    code_theme = Enum(list(THEMES), "gh-high").tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -135,6 +148,7 @@ class FormExporter(HTMLExporter):
         resources.setdefault("include_toc", self.include_toc)
         resources.setdefault("wcag_priority", self.wcag_priority)
         resources.setdefault("accesskey_navigation", self.accesskey_navigation)
+        resources.setdefault("code_theme", THEMES[self.code_theme])
 
         resources.setdefault("axe_url", self.axe_url)
         html, resources = super().from_notebook_node(nb, resources, **kw)
@@ -152,6 +166,33 @@ class FormExporter(HTMLExporter):
                 x.name = "ol"
             details.select_one("ol").attrs["aria-labelledby"] = "nb-toc"
         return soup.prettify(formatter="html5")
+
+    @property
+    def default_config(self):
+        c = Config(
+            {
+                "NbConvertBase": {
+                    "display_data_priority": [
+                        "application/vnd.jupyter.widget-view+json",
+                        "application/javascript",
+                        "text/html",
+                        "text/markdown",
+                        "image/svg+xml",
+                        "text/vnd.mermaid",
+                        "text/latex",
+                        "image/png",
+                        "image/jpeg",
+                        "text/plain",
+                    ]
+                },
+                "CSSHTMLHeaderPreprocessor": {"enabled": False},
+            }
+        )
+        if super().default_config:
+            c2 = super().default_config.copy()
+            c2.merge(c)
+            c = c2
+        return c
 
 
 class A11yExporter(FormExporter):
