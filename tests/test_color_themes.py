@@ -1,6 +1,6 @@
 from nbconvert import get_exporter
 from pytest import fixture, mark, param, xfail
-from nbconvert_a11y.a11y_exporter import THEMES
+from nbconvert_a11y.exporter import THEMES
 
 from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, PYGMENTS, AllOf, Axe, Violation
 from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, get_target_html
