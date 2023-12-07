@@ -18,7 +18,7 @@ from pytest import mark, param
 import nbconvert_a11y
 import jupyter_core.paths
 
-from nbconvert_a11y.a11y_exporter import get_soup
+from nbconvert_a11y.exporter import get_soup
 
 SKIP_BASELINE = "baseline tests skipped locally"
 LOGGER = getLogger(__name__)

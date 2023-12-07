@@ -92,7 +92,7 @@ THEMES = {
 }
 
 
-class FormExporter(HTMLExporter):
+class A11yExporter(HTMLExporter):
     """an embellished HTMLExporter that allows modifications of exporting and the exported.
 
     the `nbconvert` exporter has a lot machinery for converting notebook data into strings.
@@ -106,11 +106,11 @@ class FormExporter(HTMLExporter):
     A/B testing with out requiring `nbconvert` or notebook knowleldge.
     """
 
-    template_file = Unicode("semantic-forms/table.html.j2").tag(config=True)
+    template_file = Unicode("a11y/table.html.j2").tag(config=True)
     include_axe = Bool(False).tag(config=True)
     axe_url = CUnicode(AXE).tag(config=True)
-    include_settings = Bool(True).tag(config=True)
-    include_help = Bool(True).tag(config=True)
+    include_settings = Bool(False).tag(config=True)
+    include_help = Bool(False).tag(config=True)
     include_toc = Bool(True).tag(config=True)
     wcag_priority = Enum(["AAA", "AA", "A"], "AA").tag(config=True)
     accesskey_navigation = Bool(True).tag(config=True)
@@ -178,9 +178,12 @@ class FormExporter(HTMLExporter):
         return c
 
 
-class A11yExporter(FormExporter):
-    template_file = Unicode("a11y/table.html.j2").tag(config=True)
+class SectionExporter(A11yExporter):
+    template_file = Unicode("a11y/section.html.j2").tag(config=True)
 
+
+class ListExporter(A11yExporter):
+    template_file = Unicode("a11y/list.html.j2").tag(config=True)
 
 def soupify(body: str) -> BeautifulSoup:
     """Convert a string of html to an beautiful soup object."""
