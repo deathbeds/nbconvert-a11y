@@ -12,6 +12,7 @@ LORENZ = NOTEBOOKS / "lorenz-executed.ipynb"
 def exporter(request):
     e = get_exporter("a11y")()
     e.color_theme = request.param
+    e.include_settings = True
     e.wcag_priority = "AA"
     yield e
 
