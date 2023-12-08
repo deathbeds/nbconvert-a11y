@@ -10,13 +10,9 @@ from functools import lru_cache
 from logging import getLogger
 from os import environ
 from pathlib import Path
-from shutil import copyfile
-
 import nbconvert.nbconvertapp
 from pytest import mark, param
 
-import nbconvert_a11y
-import jupyter_core.paths
 
 from nbconvert_a11y.exporter import soupify
 
@@ -68,29 +64,6 @@ notebooks = mark.parametrize(
 )
 
 
-assets = mark.parametrize("asset", ["settings.js", "style.css"])
-
-
-@configs
-def test_config_loading(config):
-    """Verify configs are loaded."""
-    exporter_from_config(config)  # will ExporterNameError if there is a failure.
-
-
-@assets
-def test_static_assets(asset):
-    """This is a bad test. it won't fail, but needs to run to collect testing assets."""
-    target = HTML / asset
-    target.parent.mkdir(exist_ok=True, parents=True)
-    for path in map(
-        Path, jupyter_core.paths.jupyter_path("nbconvert", "templates", "a11y", "static", asset)
-    ):
-        if path.exists():
-            copyfile(path, target)
-            break
-    assert target.exists(), f"{asset} couldn't be created"
-
-
 @configs
 @notebooks
 def test_export_notebooks(config, notebook):
@@ -100,7 +73,10 @@ def test_export_notebooks(config, notebook):
     TARGET.write_text(html)
     LOGGER.debug(f"writing html to {TARGET}")
 
-@mark.parametrize("target", [get_target_html(CONFIGURATIONS / "a11y.py", NOTEBOOKS / "lorenz-executed.ipynb")])
+
+@mark.parametrize(
+    "target", [get_target_html(CONFIGURATIONS / "a11y.py", NOTEBOOKS / "lorenz-executed.ipynb")]
+)
 def test_a11y_template_content(target):
     soup = soupify(target.read_text())
 
