@@ -6,20 +6,17 @@ import functools
 import itertools
 import json
 import operator
-import os
 import pathlib
 import re
 import shlex
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import exceptiongroup
 
 from tests.test_smoke import CONFIGURATIONS, get_target_html
 
-WIN = os.name == "nt"
 EXCLUDE = re.compile(
     """or with a “role” attribute whose value is “table”, “grid”, or “treegrid”.$"""
     # https://github.com/validator/validator/issues/1125
@@ -27,15 +24,12 @@ EXCLUDE = re.compile(
 
 
 VNU = shutil.which("vnu") or shutil.which("vnu.cmd")
-JAVA = Path(shutil.which("java") or shutil.which("java.exe"))
-JAR = Path(sys.prefix) / ("Library/lib" if WIN else "lib") / "vnu.jar"
 
 
 def validate_html(*files: pathlib.Path) -> dict:
     return json.loads(
         subprocess.check_output(
-            shlex.split(f"{JAVA} -jar {JAR} --stdout --format json --exit-zero-always")
-            + list(files)
+            shlex.split(f"{VNU} --stdout --format json --exit-zero-always") + list(files)
         ).decode()
     )
 
