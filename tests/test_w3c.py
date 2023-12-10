@@ -13,7 +13,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from json import dumps
+from logging import getLogger
+from pathlib import Path
+
 import exceptiongroup
+from pytest import mark, param
+
 
 from tests.test_smoke import CONFIGURATIONS, get_target_html
 
@@ -21,15 +27,13 @@ EXCLUDE = re.compile(
     """or with a “role” attribute whose value is “table”, “grid”, or “treegrid”.$"""
     # https://github.com/validator/validator/issues/1125
 )
-
-
 VNU = shutil.which("vnu") or shutil.which("vnu.cmd")
 
 
 def validate_html(*files: pathlib.Path) -> dict:
     return json.loads(
         subprocess.check_output(
-            shlex.split(f"{VNU} --stdout --format json --exit-zero-always") + list(files)
+            [VNU, "--stdout", "--format=json", "--exit-zero-always",  *files]
         ).decode()
     )
 
@@ -57,13 +61,6 @@ def raise_if_errors(results, exclude=EXCLUDE):
     if exceptions:
         raise exceptiongroup.ExceptionGroup("nu validator errors", exceptions)
 
-
-from json import dumps
-from logging import getLogger
-from pathlib import Path
-
-import exceptiongroup
-from pytest import mark, param
 
 HERE = Path(__file__).parent
 NOTEBOOKS = HERE / "notebooks"
