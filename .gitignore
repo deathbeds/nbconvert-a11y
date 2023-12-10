@@ -21,3 +21,4 @@ site
 tests/exports
 tests/out.html
 tests/outputs/*.html
+axe-core.d.ts

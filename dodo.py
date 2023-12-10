@@ -436,3 +436,50 @@ def task_report():
 #         targets=[INDEX],
 #         actions=[(lambda x: INDEX.write_text(x) and None, [body])],
 #     )
+
+
+def task_types():
+    raw_axe_dts = HERE / "node_modules/axe-core/axe.d.ts"
+    test_axe_dts = HERE / "tests/schema/axe/axe-core.d.ts"
+    test_axe_ts = HERE / "tests/schema/axe/axe-types.ts"
+    axe_schema_json = HERE / "tests/schema/axe/axe.schema.json"
+    axe_schema_yaml = HERE / "tests/schema/axe/axe.schema.yaml"
+
+    yield dict(
+        name="axe:munge",
+        doc="copy the axe typescript types, removing un-schema-able types",
+        file_dep=[raw_axe_dts],
+        targets=[test_axe_dts],
+        actions=[
+            lambda: test_axe_dts.write_text(
+                raw_axe_dts.read_text(encoding="utf-8").replace(
+                    "element?: HTMLElement;", "/* reference to HTMLElement removed */"
+                ),
+                encoding="utf-8",
+            )
+            > 0
+        ],
+    )
+
+    args = ["yarn", "ts-json-schema-generator", "--no-type-check"]
+
+    yield dict(
+        name="axe:schema:json",
+        file_dep=[raw_axe_dts, test_axe_dts, test_axe_ts],
+        targets=[axe_schema_json],
+        actions=[[*args, "--path", test_axe_ts, "--out", axe_schema_json]],
+    )
+
+    yield dict(
+        name="axe:schema:yaml",
+        file_dep=[axe_schema_json],
+        targets=[axe_schema_yaml],
+        actions=[
+            lambda: axe_schema_yaml.write_text(
+                __import__("yaml").safe_dump(
+                    __import__("json").loads(axe_schema_json.read_text(encoding="utf-8"))
+                )
+            )
+            > 0
+        ],
+    )
