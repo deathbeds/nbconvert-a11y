@@ -33,7 +33,7 @@ VNU = shutil.which("vnu") or shutil.which("vnu.cmd")
 def validate_html(*files: pathlib.Path) -> dict:
     return json.loads(
         subprocess.check_output(
-            [VNU, "--stdout", "--format=json", "--exit-zero-always",  *files]
+            [VNU, "--stdout", "--format", "json", "--exit-zero-always",  *files]
         ).decode()
     )
 
