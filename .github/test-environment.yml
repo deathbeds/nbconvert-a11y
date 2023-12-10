@@ -24,6 +24,10 @@ dependencies:
   - pip
   - python-build
   - yarn =3.6
+  # audit
+  - vnu-validator
+  # lint
+  - ruff
   # deps
   - beautifulsoup4
   - ipywidgets
@@ -41,5 +45,3 @@ dependencies:
   # report
   - scipy
   - pandas
-  # audit
-  - vnu-validator
