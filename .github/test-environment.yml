@@ -45,3 +45,5 @@ dependencies:
   # report
   - scipy
   - pandas
+  # typing
+  - jsonschema-gentypes

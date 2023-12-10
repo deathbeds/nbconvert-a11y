@@ -440,10 +440,12 @@ def task_report():
 
 def task_types():
     raw_axe_dts = HERE / "node_modules/axe-core/axe.d.ts"
-    test_axe_dts = HERE / "tests/schema/axe/axe-core.d.ts"
-    test_axe_ts = HERE / "tests/schema/axe/axe-types.ts"
-    axe_schema_json = HERE / "tests/schema/axe/axe.schema.json"
-    axe_schema_yaml = HERE / "tests/schema/axe/axe.schema.yaml"
+    axe = HERE / "tests/schema/axe/"
+    test_axe_dts = axe / "axe-core.d.ts"
+    test_axe_ts = axe / "axe-types.ts"
+    axe_schema_json = axe / "axe.schema.json"
+    axe_schema_yaml = axe / "axe.schema.yaml"
+    axe_py = axe / "axe.py"
 
     yield dict(
         name="axe:munge",
@@ -482,4 +484,11 @@ def task_types():
             )
             > 0
         ],
+    )
+
+    yield dict(
+        name="axe:py",
+        file_dep=[axe_schema_json],
+        targets=[axe_py],
+        actions=[["jsonschema-gentypes", "--json-schema", axe_schema_json, "--python", axe_py]],
     )

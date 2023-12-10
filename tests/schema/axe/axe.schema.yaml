@@ -1,9 +1,17 @@
+$ref: '#/definitions/IAxe'
 $schema: http://json-schema.org/draft-07/schema#
 definitions:
-  AxeResults:
-    $ref: '#/definitions/axe.AxeResults'
-  RunOptions:
-    $ref: '#/definitions/axe.RunOptions'
+  IAxe:
+    additionalProperties: false
+    properties:
+      options:
+        $ref: '#/definitions/axe.RunOptions'
+      results:
+        $ref: '#/definitions/axe.AxeResults'
+    required:
+    - results
+    - options
+    type: object
   axe.AxeResults:
     additionalProperties: false
     description: Object for axe Results
@@ -74,26 +82,6 @@ definitions:
     anyOf:
     - $ref: '#/definitions/axe.BaseSelector'
     - $ref: '#/definitions/axe.ShadowDomSelector'
-  axe.EnvironmentData:
-    additionalProperties: false
-    properties:
-      testEngine:
-        $ref: '#/definitions/axe.TestEngine'
-      testEnvironment:
-        $ref: '#/definitions/axe.TestEnvironment'
-      testRunner:
-        $ref: '#/definitions/axe.TestRunner'
-      timestamp:
-        type: string
-      url:
-        type: string
-    required:
-    - testEngine
-    - testRunner
-    - testEnvironment
-    - url
-    - timestamp
-    type: object
   axe.ImpactValue:
     enum:
     - minor
