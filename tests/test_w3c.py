@@ -40,7 +40,7 @@ INVALID_MARKUP = mark.xfail(reason="invalid html markup")
 
 
 ENV_JAVA_PATH = "NBA11Y_JAVA_PATH"
-ENV_VNU_JAR_PATH = "NBA11Y_VNU_PATH"
+ENV_VNU_JAR_PATH = "NBA11Y_VNU_JAR_PATH"
 ENV_VNU_SERVER_URL = "NBA11Y_VNU_SERVER_URL"
 
 TVnuResults = Dict[str, Any]

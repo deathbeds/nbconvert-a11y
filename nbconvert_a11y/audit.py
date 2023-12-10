@@ -13,7 +13,7 @@ import requests
 
 logger = getLogger("a11y-tasks")
 
-ENV_CHROMIUM_CHANNEL = "NBA117_CHROMIUM_CHANNEL"
+ENV_CHROMIUM_CHANNEL = "NBA11Y_CHROMIUM_CHANNEL"
 DEFAULT_CHROMIUM_CHANNEL = "chrome-beta"
 
 
