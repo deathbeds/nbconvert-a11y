@@ -207,15 +207,15 @@ def _start_vnu_server(proto: str, host: str) -> Tuple[str, Popen]:
     return port, url, proc
 
 
-def wait_for_vnu_to_start(url: str, retries: int = 5, warmup: int = 5, sleep: int = 1):
+def wait_for_vnu_to_start(url: str, retries: int = 10, sleep: int = 1):
     last_error = None
 
-    time.sleep(warmup)
+    time.sleep(sleep)
 
     while retries:
         retries -= 1
         try:
-            return urlopen(url, timeout=warmup)
+            return urlopen(url, timeout=sleep)
         except Exception as err:
             last_error = err
             time.sleep(sleep)
