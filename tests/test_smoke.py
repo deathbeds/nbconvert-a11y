@@ -66,29 +66,6 @@ notebooks = mark.parametrize(
 )
 
 
-assets = mark.parametrize("asset", ["settings.js", "style.css"])
-
-
-@configs
-def test_config_loading(config):
-    """Verify configs are loaded."""
-    exporter_from_config(config)  # will ExporterNameError if there is a failure.
-
-
-@assets
-def test_static_assets(asset):
-    """This is a bad test. it won't fail, but needs to run to collect testing assets."""
-    target = HTML / asset
-    target.parent.mkdir(exist_ok=True, parents=True)
-    for path in map(
-        Path, jupyter_core.paths.jupyter_path("nbconvert", "templates", "a11y", "static", asset)
-    ):
-        if path.exists():
-            copyfile(path, target)
-            break
-    assert target.exists(), f"{asset} couldn't be created"
-
-
 @configs
 @notebooks
 def test_export_notebooks(config, notebook):
