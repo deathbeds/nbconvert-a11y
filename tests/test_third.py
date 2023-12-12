@@ -46,10 +46,6 @@ class DefaultTemplate(TestCase):
 
     # test all of the accessibility violations
     # then incrementally explain them in smaller tests.
-    @xfail(
-        reason="there is a lot of complexity in ammending accessibility in many projects",
-        strict=True,
-    )
     def test_all(self):
         exceptions = self.axe.run().results.exception()
         try: raise exceptions
