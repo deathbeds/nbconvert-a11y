@@ -45,7 +45,9 @@ def make_app():
             for k, v in urllib.parse.parse_qs(request.query_string).items()
         }
         if "config" in params:
-            app = nbconvert.nbconvertapp.NbConvertApp(config_file=params["config"])
+            app = nbconvert.nbconvertapp.NbConvertApp(
+                config_file=str(CONFIGURATIONS / params["config"])
+            )
             app.load_config_file()
             params = dict(config=app.config)
 
