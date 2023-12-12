@@ -7,9 +7,8 @@
 from pathlib import Path
 
 from pytest import mark, param
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
 
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX
+from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
 from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, get_target_html
 
 TPL_NOT_ACCESSIBLE = mark.xfail(reason="template is not accessible")

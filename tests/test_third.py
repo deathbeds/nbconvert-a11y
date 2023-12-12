@@ -6,15 +6,13 @@ upstream of our control.
 
 from functools import partial
 from os import environ
-from pathlib import Path
-from time import sleep
 from unittest import TestCase
-from nbconvert import get_exporter
 
-from pytest import fixture, skip, mark
+from pytest import fixture, mark, skip
+
+from nbconvert import get_exporter
 from nbconvert_a11y.pytest_axe import (
     JUPYTER_WIDGETS,
-    MATHJAX,
     NO_ALT,
     PYGMENTS,
     SA11Y,
@@ -28,18 +26,18 @@ environ.get("CI") or skip(allow_module_level=True)
 xfail = partial(mark.xfail, raises=AllOf, strict=True)
 
 
-@fixture
+@fixture()
 def exporter(request):
     e = get_exporter("html")()
-    yield e
+    return e
 
 
-@fixture
+@fixture()
 def a11y_exporter(request):
     e = get_exporter("a11y")()
     e.wcag_priority = "AA"
     e.include_sa11y = True
-    yield e
+    return e
 
 
 class DefaultTemplate(TestCase):
@@ -97,7 +95,7 @@ class DefaultTemplate(TestCase):
 class A11yTemplate(TestCase):
     @xfail(raises=AllOf, strict=True)
     def test_sa11y(self):
-        """the simple lorenz widget generates one minor and one serious accessibility violation."""
+        """The simple lorenz widget generates one minor and one serious accessibility violation."""
         raise self.axe.run({"include": [SA11Y]}).raises_allof(
             Violation["serious-label-content-name-mismatch"]
         )
