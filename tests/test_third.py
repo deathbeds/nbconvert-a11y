@@ -65,7 +65,7 @@ class DefaultTemplate(TestCase):
         strict=True,
     )
     def test_highlight_pygments(self):
-        """the default template has two serious color contrast violations.
+        """The default template has two serious color contrast violations.
 
         an issue needs to be opened or referenced.
         """
@@ -77,7 +77,7 @@ class DefaultTemplate(TestCase):
 
     @xfail(reason="widgets have not recieved a concerted effort.", raises=AllOf, strict=True)
     def test_widget_display(self):
-        """the simple lorenz widget generates one minor and one serious accessibility violation."""
+        """The simple lorenz widget generates one minor and one serious accessibility violation."""
         raise self.axe.run({"include": [JUPYTER_WIDGETS], "exclude": [NO_ALT]}).raises_allof(
             Violation["minor-focus-order-semantics"],
             Violation["serious-aria-input-field-name"],
