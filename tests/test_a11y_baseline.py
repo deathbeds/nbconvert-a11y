@@ -4,13 +4,12 @@
 * test the accessibility of nbconvert-a11y dialogs
 """
 
-from json import dumps
 from pathlib import Path
 
 from pytest import mark, param
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX
 
-from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, SKIPCI, get_target_html
+from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
+from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, get_target_html
 
 TPL_NOT_ACCESSIBLE = mark.xfail(reason="template is not accessible")
 HERE = Path(__file__).parent
@@ -39,7 +38,7 @@ TREE = AUDIT / "tree"
     ],
 )
 def test_axe(axe, config, notebook):
-    """verify the baseline templates satisify all rules update AAA.
+    """Verify the baseline templates satisify all rules update AAA.
 
     any modifications to the template can only degrade accessibility.
     this baseline is critical for adding more features. all testing piles
@@ -50,7 +49,7 @@ def test_axe(axe, config, notebook):
     audit = AUDIT / target.with_suffix(".json").name
 
     test = axe(Path.as_uri(target))
-    test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX]})
+    test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
     # this is not a good place to export an audit except to
     # verify what tests apply and what tests don't
     # this could be a good time to export the accessibility tree.

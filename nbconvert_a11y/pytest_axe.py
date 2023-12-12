@@ -7,9 +7,8 @@
 
 # requires node and axe
 # requires playwright
-from ast import Not
-from collections import defaultdict
 import dataclasses
+from collections import defaultdict
 from functools import lru_cache, partial
 from json import dumps, loads
 from pathlib import Path
@@ -18,7 +17,6 @@ from subprocess import CalledProcessError, check_output
 from typing import Any
 
 import exceptiongroup
-from numpy import isin
 from pytest import fixture, mark, param
 
 # selectors for regions of the notebook
@@ -27,6 +25,7 @@ JUPYTER_WIDGETS = ".jupyter-widgets"
 OUTPUTS = ".jp-OutputArea-output"
 NO_ALT = "img:not([alt])"
 PYGMENTS = ".highlight"
+SA11Y = "sa11y-control-panel"
 
 # axe test tags
 # https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#axe-core-tags
@@ -94,7 +93,7 @@ class AxeOptions(Base):
 
 
 def get_npm_directory(package, data=False):
-    """get the path of an npm package in the environment"""
+    """Get the path of an npm package in the environment"""
     try:
         info = loads(check_output(split(f"npm ls --long --depth 0 --json {quote(package)}")))
     except CalledProcessError:
@@ -153,7 +152,7 @@ class Axe(Base):
         return self
 
     def reset(self):
-        self.page.evaluate(f"""window.axe.reset()""")
+        self.page.evaluate("""window.axe.reset()""")
         return self
 
     def __enter__(self):
