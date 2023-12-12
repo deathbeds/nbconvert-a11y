@@ -56,32 +56,26 @@ class DefaultTemplate(TestCase):
         except* Violation["minor-focus-order-semantics"]: ...
         pytest.xfail("there are 1 critical, 3 serious, and 1 minor accessibility violations")
 
-    @xfail(
-        reason="the default pygments theme has priority AA and AAA color contrast issues.",
-        strict=True,
-    )
-    def test_highlight_pygments(self):
+    def xfail_pygments_highlight_default(self):
         """The default template has two serious color contrast violations.
 
         an issue needs to be opened or referenced.
         """
         # further verification would testing the nbviewer layer.
-        raise self.axe.run({"include": [PYGMENTS]}).raises_allof(
-            Violation["serious-color-contrast-enhanced"],
-            Violation["serious-color-contrast"],
-        )
+        exceptions = self.axe.run({"include": [PYGMENTS]}).results.exception()
+        try: raise exceptions
+        except* Violation["serious-color-contrast-enhanced"]: ...
+        except* Violation["serious-color-contrast"]: ...
+        pytest.xfail("there are 2 serious color contrast violations.")
 
-    @xfail(reason="widgets have not recieved a concerted effort.", raises=AllOf, strict=True)
-    def test_widget_display(self):
+
+    def xfail_widget_display(self):
         """The simple lorenz widget generates one minor and one serious accessibility violation."""
-        raise self.axe.run({"include": [JUPYTER_WIDGETS], "exclude": [NO_ALT]}).raises_allof(
-            Violation["minor-focus-order-semantics"],
-            Violation["serious-aria-input-field-name"],
-        )
-
-    # todo test mermaid
-    # test widgets kitchen sink
-    # test pandas
+        exceptions = self.axe.run({"include": [JUPYTER_WIDGETS], "exclude": [NO_ALT]}).results.exception()
+        try: raise exceptions
+        except* Violation["minor-focus-order-semantics"]: ...
+        except* Violation["serious-aria-input-field-name"]: ...
+        pytest.xfail("widgets have not recieved a concerted effort.")
 
     @fixture(autouse=True)
     def lorenz(self, axe, tmp_path, exporter):
@@ -91,12 +85,12 @@ class DefaultTemplate(TestCase):
 
 
 class A11yTemplate(TestCase):
-    @xfail(raises=AllOf, strict=True)
-    def test_sa11y(self):
+    def xfail_sa11y(self):
         """The simple lorenz widget generates one minor and one serious accessibility violation."""
-        raise self.axe.run({"include": [SA11Y]}).raises_allof(
-            Violation["serious-label-content-name-mismatch"]
-        )
+        exceptions = self.axe.run({"include": [SA11Y]}).results.exception()
+        try: raise exceptions
+        except *Violation["serious-label-content-name-mismatch"]: ...
+        pytest.xfail("an issue report needs to be filed with sa11y.")
 
     @fixture(autouse=True)
     def lorenz(self, axe, tmp_path, a11y_exporter):
