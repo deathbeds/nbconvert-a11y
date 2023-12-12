@@ -51,7 +51,7 @@ class DefaultTemplate(TestCase):
         strict=True,
     )
     def test_all(self):
-        exceptions = self.axe.run().reuults.exception()
+        exceptions = self.axe.run().results.exception()
         try: raise exceptions
         except* Violation["critical-image-alt"]: ...
         except* Violation["serious-color-contrast-enhanced"]: ...
