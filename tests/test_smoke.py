@@ -10,10 +10,12 @@ from functools import lru_cache
 from logging import getLogger
 from os import environ
 from pathlib import Path
-import nbconvert.nbconvertapp
+from shutil import copyfile
+
+import jupyter_core.paths
 from pytest import mark, param
 
-
+import nbconvert.nbconvertapp
 from nbconvert_a11y.exporter import soupify
 
 SKIP_BASELINE = "baseline tests skipped locally"
