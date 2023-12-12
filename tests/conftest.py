@@ -1,5 +1,5 @@
-from ast import literal_eval
 import urllib
+from ast import literal_eval
 from os import environ
 from pathlib import Path
 from unittest import TestLoader
@@ -7,6 +7,7 @@ from unittest import TestLoader
 import pytest
 from flask import Flask, request, url_for
 
+import nbconvert.nbconvertapp
 from nbconvert import get_exporter
 
 collect_ignore = ["notebooks/lorenz.ipynb"]
@@ -18,12 +19,6 @@ HTML = EXPORTS / "html"
 CI = environ.get("CI")
 
 TestLoader.testMethodPrefix = "test", "xfail"
-
-
-def pytest_collection_modifyitems(items):
-    for item in items:
-        if "app" in getattr(item, "fixturenames", ()):
-            item.add_marker(pytest.mark.options(debug=True))
 
 
 def format_qs_value(x):
@@ -45,12 +40,16 @@ def make_app():
 
     @app.route("/<exporter>/<name>")
     def nb(exporter, name):
-        e = get_exporter(exporter)(
-            **{
-                k.decode(): format_qs_value(v)
-                for k, v in urllib.parse.parse_qs(request.query_string).items()
-            }
-        )
+        params = {
+            k.decode(): format_qs_value(v)
+            for k, v in urllib.parse.parse_qs(request.query_string).items()
+        }
+        if "config" in params:
+            app = nbconvert.nbconvertapp.NbConvertApp(config_file=params["config"])
+            app.load_config_file()
+            params = dict(config=app.config)
+
+        e = get_exporter(exporter)(**params)
         return e.from_filename(NOTEBOOKS / name)[0]
 
     return app
