@@ -11,10 +11,10 @@ import socket
 import sys
 import time
 import uuid
-from json import dumps
+from json import dumps, loads
 from logging import getLogger
 from pathlib import Path
-from subprocess import Popen
+from subprocess import Popen, check_output
 from typing import Any, Callable, Dict, Generator, Tuple
 from urllib.request import urlopen
 
@@ -75,8 +75,8 @@ htmls = mark.parametrize(
 
 
 @htmls
-def test_baseline_w3c(html: Path, an_html_validator: "TVnuValidator") -> None:
-    result = an_html_validator(html)
+def test_baseline_w3c_paths(html: Path, validate_html_file: "TVnuValidator") -> None:
+    result = validate_html_file(html)
     VALIDATOR.mkdir(parents=True, exist_ok=True)
     audit = VALIDATOR / html.with_suffix(".json").name
     violations = result.get("violations", "")
@@ -85,15 +85,34 @@ def test_baseline_w3c(html: Path, an_html_validator: "TVnuValidator") -> None:
     raise_if_errors(result)
 
 
-# fixtures
+def test_baseline_w3c(notebook, validate_html_url):
+    raise_if_errors(validate_html_url(notebook()))
+
+
+def get_vnu_path():
+    return shutil.which("vnu") or shutil.which("vnu.cmd")
+
+
+@pytest.fixture()
+def validate_html_url(tmp_path_factory):
+    def runner(url):
+        return loads(
+            check_output(
+                [get_vnu_path(), "--stdout", "--format", "json", "--exit-zero-always", url]
+            )
+        )
+
+    return runner
+
+
 @pytest.fixture(scope="session")
-def an_html_validator(a_vnu_server_url: str) -> TVnuValidator:
+def validate_html_file(a_vnu_server_url: str) -> TVnuValidator:
     """Wrap the nvu validator REST API in a synchronous request
 
     https://github.com/validator/validator/wiki/Service-%C2%BB-Input-%C2%BB-POST-body
     """
 
-    def post(path: Path) -> TVnuResults:
+    def post(path: Path | str) -> TVnuResults:
         url = f"{a_vnu_server_url}?out=json"
         data = path.read_bytes()
         headers = {"Content-Type": "text/html"}
@@ -152,7 +171,8 @@ def a_vnu_server_url(
 
     yield url
 
-    shutil.rmtree(needs_lock)
+    if needs_lock.exists():
+        shutil.rmtree(needs_lock)
 
     if owns_lock:
         while True:
@@ -164,7 +184,8 @@ def a_vnu_server_url(
 
         print(f"... tearing down vnu server at {url}")
         proc.terminate()
-        shutil.rmtree(lock_dir)
+        if lock_dir.exists():
+            shutil.rmtree(lock_dir)
 
 
 # utilities
