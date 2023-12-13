@@ -203,7 +203,7 @@ class AxeViolation(Violation):
         if data["impact"]:
             bases += (AxeViolation[data["impact"]],)
         for tag in data["tags"]:
-            bases += ([tag],)
+            bases += (AxeViolation[tag],)
         return cls.map.setdefault(name, type(name, bases, object))
 
     def get_elements(self, N=150):
