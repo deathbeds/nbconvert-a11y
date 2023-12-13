@@ -20,8 +20,8 @@ from urllib.request import urlopen
 import exceptiongroup
 import pytest
 import requests
-from nbconvert_a11y.pytest_axe import Collector, Results, Violation
 
+from nbconvert_a11y.pytest_axe import Collector, Results, Violation
 
 HERE = Path(__file__).parent
 
@@ -43,7 +43,7 @@ class Validator(Collector):
 
     def run(self):
         if self.server_url:
-            self.results = ValidatorResults(validate_url(self.url))
+            self.results = ValidatorResults(validate_path(self.server_url, self.url))
         else:
             self.results = ValidatorResults(validate_url(self.url))
         return self
@@ -73,14 +73,14 @@ class ValidatorViolation(Violation):
 
     @classmethod
     def cast(cls, message):
-        CSS_START = re.compile("""^“\S+”:""")
+        CSS_START = re.compile(r"""^“\S+”:""")
         t = (ValidatorViolation[message["type"]],)
         if message.get("subType"):
             t += (ValidatorViolation[message.get("subType")],)
         msg = message["message"]
         if msg.startswith("CSS:"):
             msg = msg[5:]
-            t += ("css",)
+            t += (ValidatorViolation["css"],)
             if CSS_START.match(msg):
                 prop, _, msg = msg.partition(": ")
                 t += (ValidatorViolation[prop[1:-1]],)
@@ -115,6 +115,22 @@ def validate_html_url():
         return Validator(url=url)
 
     return go
+
+
+@pytest.fixture()
+def validate_html_path(a_vnu_server_url: str) -> TVnuValidator:
+    def go(url):
+        return Validator(url=url, server_url=a_vnu_server_url)
+
+    return go
+
+
+def validate_path(a_vnu_server_url, path: Path) -> TVnuResults:
+    url = f"{a_vnu_server_url}?out=json"
+    data = path.read_bytes()
+    headers = {"Content-Type": "text/html"}
+    res = requests.post(url, data, headers=headers)
+    return res.json()
 
 
 @pytest.fixture(scope="session")

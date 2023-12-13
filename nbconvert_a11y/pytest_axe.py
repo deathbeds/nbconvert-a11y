@@ -17,7 +17,7 @@ from subprocess import CalledProcessError, check_output
 from typing import Any
 
 import exceptiongroup
-from pytest import fixture, mark, param
+from pytest import fixture
 
 # selectors for regions of the notebook
 MATHJAX = "[id^=MathJax]"
