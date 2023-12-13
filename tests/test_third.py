@@ -4,42 +4,23 @@ these tests allow us to track ongoing community progress and record inaccessibil
 upstream of our control.
 """
 
-from functools import partial
 from os import environ
 from unittest import TestCase
 from flask import url_for
 
 import pytest
-from pytest import fixture, mark, skip
+from pytest import fixture, skip
 
-from nbconvert import get_exporter
 from nbconvert_a11y.pytest_axe import (
     JUPYTER_WIDGETS,
     NO_ALT,
     PYGMENTS,
     SA11Y,
-    AllOf,
     Violation,
 )
-from tests.test_color_themes import LORENZ
 
 # only run these tests when the CI environment variables are defined.
 environ.get("CI") or skip(allow_module_level=True)
-xfail = partial(mark.xfail, raises=AllOf, strict=True)
-
-
-@fixture()
-def exporter(request):
-    e = get_exporter("html")()
-    return e
-
-
-@fixture()
-def a11y_exporter(request):
-    e = get_exporter("a11y")()
-    e.wcag_priority = "AA"
-    e.include_sa11y = True
-    return e
 
 
 class DefaultTemplate(TestCase):
