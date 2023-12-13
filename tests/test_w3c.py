@@ -4,9 +4,8 @@ from logging import getLogger
 from pathlib import Path
 
 import pytest
-import requests
-from nbconvert_a11y.pytest_w3c import ValidatorViolation, raise_if_errors
 
+from nbconvert_a11y.pytest_w3c import ValidatorViolation, raise_if_errors
 from tests.test_smoke import CONFIGURATIONS, get_target_html
 
 HERE = Path(__file__).parent
@@ -46,12 +45,44 @@ htmls = pytest.mark.parametrize(
 
 
 @htmls
-def test_baseline_w3c_paths(html: Path, validate_html_file: "TVnuValidator") -> None:
-    result = validate_html_file(html)
+def test_baseline_w3c_paths(html: Path, validate_html_path: "TVnuValidator") -> None:
+    result = validate_html_path(html).run()
     raise_if_errors(result)
 
 
-def xfail_baseline_a11y_min(notebook, validate_html_url):
+def test_a11y_max(notebook, validate_html_url):
+    exc = (
+        validate_html_url(notebook("a11y", "lorenz-executed.ipynb", config="a11y.py"))
+        .run()
+        .exception()
+    )
+    try:
+        raise exc
+    except* ValidatorViolation["info"]:
+        ...
+
+
+def xfail_default(notebook, validate_html_url):
+    exc = validate_html_url(notebook("html", "lorenz-executed.ipynb")).run().exception()
+    try:
+        raise exc
+    except* ValidatorViolation["error-Unknown pseudo-element or pseudo-class “:horizontal”"]:
+        ...
+    except* ValidatorViolation["error-Unknown pseudo-element or pseudo-class “:vertical”"]:
+        ...
+    except* ValidatorViolation["error-box-shadow"]:
+        ...
+    except* ValidatorViolation["error-overflow"]:
+        ...
+    except* ValidatorViolation["error-Stray start tag “script”."]:
+        ...
+    except* ValidatorViolation["info"]:
+        ...
+    finally:
+        pytest.xfail("the default nbconvert template is non-conformant.")
+
+
+def xfail_a11y_min(notebook, validate_html_url):
     exc = validate_html_url(notebook()).run().exception()
     try:
         raise exc
@@ -66,4 +97,6 @@ def xfail_baseline_a11y_min(notebook, validate_html_url):
     except* ValidatorViolation["info"]:
         ...
     finally:
-        pytest.xfail("the minified a11y theme has superfluous idref's that need to conditionally removed.")
+        pytest.xfail(
+            "the minified a11y theme has superfluous idref's that need to conditionally removed."
+        )
