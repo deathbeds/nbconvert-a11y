@@ -46,7 +46,7 @@ htmls = pytest.mark.parametrize(
 
 @htmls
 def test_baseline_w3c_paths(html: Path, validate_html_path: "TVnuValidator") -> None:
-    result = validate_html_path(html).run().results
+    result = validate_html_path(html).run().results.data
     raise_if_errors(result)
 
 
