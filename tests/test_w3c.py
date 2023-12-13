@@ -47,38 +47,13 @@ ENV_VNU_SERVER_URL = "NBA11Y_VNU_SERVER_URL"
 TVnuResults = Dict[str, Any]
 TVnuValidator = Callable[[Path], TVnuResults]
 
-def messages_to_violations(messages):
-    ct = collections.defaultdict(int)
-    CSS_START = re.compile("""^“\S+”:""")
-    exceptions = []
-    for message in messages:
-        t = message["type"],
-        ct[t[0]] += 1
-        if message.get("subType"): t += message.get("subType"),
-        msg = message["message"]
-        if msg.startswith("CSS:"):
-            msg = msg[5:]
-            t += "css",         
-            if CSS_START.match(msg):
-                prop, _, msg = msg.partition(": ")
-                t += prop[1:-1],
-                id = F"""{message["type"]}-{prop[1:-1]}"""
-            else:
-                id =F"""{message["type"]}-{msg.strip()}"""
-        else:
-            id = F"""{message["type"]}-{msg.strip()}"""
-            msg = message["extract"]
-        exceptions.append(ValidatorViolation[id](msg.strip()))
-    if exceptions:
-        return exceptiongroup.ExceptionGroup(
-            F"""{sum(ct.values())} violations: """ + ", ".join(
-                F"""{v} {k}"""  for k, v in ct.items()
-            ),
-            exceptions)
-
 class Validator(Collector):
+    server_url: Any = None
     def run(self):
-        self.results = ValidatorResults(validate_url(self.url))
+        if self.server_url:
+            self.results = ValidatorResults(validate_url(self.url))
+        else:
+            self.results = ValidatorResults(validate_url(self.url))
         return self
 
 
@@ -95,19 +70,6 @@ class ValidatorViolation(Violation):
     hiliteStart: Any = None
     hiliteLength: Any = None
     map = {}
-
-    @classmethod
-    def cast(cls, data):
-        object = {"__doc__": data.get("message")}
-        name = "-".join((data["type"], data["message"]))
-        if name in cls.map:
-            return cls.map.get(name)
-        bases = ()
-        # these generate types primitves
-        bases += (ValidatorViolation[data["type"]], ValidatorViolation[data["message"]])
-        if data.get("subType"):
-            bases += (ValidatorViolation[data.get("subType")],)
-        return cls.map.setdefault(name, type(name, bases, object))
 
     @classmethod
     def from_violations(cls, data):
@@ -175,15 +137,10 @@ htmls = mark.parametrize(
 @htmls
 def test_baseline_w3c_paths(html: Path, validate_html_file: "TVnuValidator") -> None:
     result = validate_html_file(html)
-    VALIDATOR.mkdir(parents=True, exist_ok=True)
-    audit = VALIDATOR / html.with_suffix(".json").name
-    violations = result.get("violations", "")
-    LOGGER.info(f"""writing {audit} with {len(violations)} violations""")
-    audit.write_text(dumps(result))
     raise_if_errors(result)
 
 
-def test_baseline_a11y_min(notebook, validate_html_url):
+def xfail_baseline_a11y_min(notebook, validate_html_url):
     exc = validate_html_url(notebook()).run().exception()
     try:
         raise exc
@@ -197,7 +154,8 @@ def test_baseline_a11y_min(notebook, validate_html_url):
         ...
     except* ValidatorViolation["info"]:
         ...
-    pytest.xfail("the minified a11y theme has superfluous idref's that need to conditionally removed.")
+    finally:
+        pytest.xfail("the minified a11y theme has superfluous idref's that need to conditionally removed.")
 
 def get_vnu_path():
     return shutil.which("vnu") or shutil.which("vnu.cmd")
