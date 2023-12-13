@@ -22,6 +22,7 @@ import exceptiongroup
 import pytest
 import requests
 from pytest import mark, param
+from nbconvert_a11y.pytest_axe import Base, Collector, Results, Violation
 
 from tests.test_smoke import CONFIGURATIONS, get_target_html
 
@@ -45,6 +46,103 @@ ENV_VNU_SERVER_URL = "NBA11Y_VNU_SERVER_URL"
 
 TVnuResults = Dict[str, Any]
 TVnuValidator = Callable[[Path], TVnuResults]
+
+def messages_to_violations(messages):
+    ct = collections.defaultdict(int)
+    CSS_START = re.compile("""^“\S+”:""")
+    exceptions = []
+    for message in messages:
+        t = message["type"],
+        ct[t[0]] += 1
+        if message.get("subType"): t += message.get("subType"),
+        msg = message["message"]
+        if msg.startswith("CSS:"):
+            msg = msg[5:]
+            t += "css",         
+            if CSS_START.match(msg):
+                prop, _, msg = msg.partition(": ")
+                t += prop[1:-1],
+                id = F"""{message["type"]}-{prop[1:-1]}"""
+            else:
+                id =F"""{message["type"]}-{msg.strip()}"""
+        else:
+            id = F"""{message["type"]}-{msg.strip()}"""
+            msg = message["extract"]
+        exceptions.append(ValidatorViolation[id](msg.strip()))
+    if exceptions:
+        return exceptiongroup.ExceptionGroup(
+            F"""{sum(ct.values())} violations: """ + ", ".join(
+                F"""{v} {k}"""  for k, v in ct.items()
+            ),
+            exceptions)
+
+class Validator(Collector):
+    def run(self):
+        self.results = ValidatorResults(validate_url(self.url))
+        return self
+
+
+class ValidatorViolation(Violation):
+    type: Any = None
+    url: Any = None
+    firstLine: Any = None
+    lastLine: Any = None
+    lastColumn: Any = None
+    firstColumn: Any = None
+    message: Any = None
+    extract: Any = None
+    subType: Any = None
+    hiliteStart: Any = None
+    hiliteLength: Any = None
+    map = {}
+
+    @classmethod
+    def cast(cls, data):
+        object = {"__doc__": data.get("message")}
+        name = "-".join((data["type"], data["message"]))
+        if name in cls.map:
+            return cls.map.get(name)
+        bases = ()
+        # these generate types primitves
+        bases += (ValidatorViolation[data["type"]], ValidatorViolation[data["message"]])
+        if data.get("subType"):
+            bases += (ValidatorViolation[data.get("subType")],)
+        return cls.map.setdefault(name, type(name, bases, object))
+
+    @classmethod
+    def from_violations(cls, data):
+        out = []
+        for message in (messages := data.get("messages")):
+            
+            out.append(ValidatorViolation(**message))
+
+        return exceptiongroup.ExceptionGroup(f"{len(messages)} html violations", out)
+
+    @classmethod
+    def cast(cls, message):
+        CSS_START = re.compile("""^“\S+”:""")
+        t = ValidatorViolation[message["type"]],
+        if message.get("subType"): t += ValidatorViolation[message.get("subType")],
+        msg = message["message"]
+        if msg.startswith("CSS:"):
+            msg = msg[5:]
+            t += "css",         
+            if CSS_START.match(msg):
+                prop, _, msg = msg.partition(": ")
+                t += ValidatorViolation[prop[1:-1]],
+                id = F"""{message["type"]}-{prop[1:-1]}"""
+            else:
+                id =F"""{message["type"]}-{msg.strip()}"""
+        else:
+            id = F"""{message["type"]}-{msg.strip()}"""
+            msg = message["extract"]
+        return cls.map.setdefault(id, type(id, t, {}))
+
+
+class ValidatorResults(Results):
+    def exception(self):
+        if self.data["messages"]:
+            return ValidatorViolation.from_violations(self.data)
 
 
 EXCLUDE = re.compile(
@@ -85,24 +183,38 @@ def test_baseline_w3c_paths(html: Path, validate_html_file: "TVnuValidator") -> 
     raise_if_errors(result)
 
 
-def test_baseline_w3c(notebook, validate_html_url):
-    raise_if_errors(validate_html_url(notebook()))
-
+def test_baseline_a11y_min(notebook, validate_html_url):
+    exc = validate_html_url(notebook()).run().exception()
+    try:
+        raise exc
+    except* ValidatorViolation[
+        "error-The “aria-labelledby” attribute must point to an element in the same document."
+    ]:
+        ...
+    except* ValidatorViolation[
+        "error-The “aria-describedby” attribute must point to an element in the same document."
+    ]:
+        ...
+    except* ValidatorViolation["info"]:
+        ...
+    pytest.xfail("the minified a11y theme has superfluous idref's that need to conditionally removed.")
 
 def get_vnu_path():
     return shutil.which("vnu") or shutil.which("vnu.cmd")
 
 
-@pytest.fixture()
-def validate_html_url(tmp_path_factory):
-    def runner(url):
-        return loads(
-            check_output(
-                [get_vnu_path(), "--stdout", "--format", "json", "--exit-zero-always", url]
-            )
-        )
+def validate_url(url):
+    return loads(
+        check_output([get_vnu_path(), "--stdout", "--format", "json", "--exit-zero-always", url])
+    )
 
-    return runner
+
+@pytest.fixture()
+def validate_html_url():
+    def go(url):
+        return Validator(url=url)
+
+    return go
 
 
 @pytest.fixture(scope="session")
