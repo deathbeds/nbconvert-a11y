@@ -235,7 +235,7 @@ class UnexpectedFail(ExceptionGroup):
 class Violations(ExceptionGroup):
     exception = Violation
 
-    def xfail(self, matches=None):
+    def xfail(self, *matches):
         exceptions = []
         expected_fail, unexpected_fail = self.split(matches or tuple())
         unexpected_pass = set()
@@ -317,7 +317,9 @@ class Axe(Collector):
     def raises(self, xfail=None):
         exception = self.results.exception()
         if exception:
-            exception = exception.xfail(xfail)
+            if isinstance(xfail, type):
+                xfail = (xfail,)
+            exception = exception.xfail(*xfail)
             if exception:
                 raise exception
 
