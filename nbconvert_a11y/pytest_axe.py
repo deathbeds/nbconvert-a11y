@@ -315,7 +315,7 @@ class Axe(Collector):
         return self.snapshots[-1]
 
     def raises(self, xfail=None):
-        exception = self.exception()
+        exception = self.results.exception()
         if exception:
             exception = exception.xfail(xfail)
             if exception:
