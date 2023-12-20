@@ -7,7 +7,7 @@
 
 from pytest import mark
 
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
+from nbconvert_a11y.pytest_axe import SELECTORS as S
 
 
 @mark.parametrize(
@@ -28,5 +28,5 @@ def test_axe(axe, notebook, config, exporter_name, name):
     test = axe(notebook(exporter_name, name, config=config))
     # ignore mathjax at the moment. we might be able to turne mathjax to have better
     # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
-    test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
+    test.run({"exclude": [S.JUPYTER_WIDGETS, S.MATHJAX, S.SA11Y]})
     test.raises()
