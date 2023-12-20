@@ -3,18 +3,21 @@
 
 from pytest import fixture, mark, param
 
-from nbconvert_a11y.pytest_axe import Axe
-from tests.test_smoke import CONFIGURATIONS, NOTEBOOKS, get_target_html
+from nbconvert_a11y.pytest_axe import Axe, Violations
 
-NEEDS_WORK = "state needs work"
-
-LORENZ_EXECUTED = get_target_html(CONFIGURATIONS / "a11y.py", NOTEBOOKS / "lorenz-executed.ipynb")
+NEEDS_WORK = mark.xfail(reason="state needs work", raises=Violations)
 
 
 @fixture()
 def lorenz(page, notebook):
     axe = Axe(page=page, url=notebook("a11y", "lorenz-executed.ipynb", config="a11y.py"))
     return axe.configure()
+
+
+class JS:
+    SNIPPET_FONT_SIZE = (
+        """window.getComputedStyle(document.querySelector("body")).getPropertyValue("font-size")"""
+    )
 
 
 @mark.parametrize(
@@ -26,8 +29,6 @@ def lorenz(page, notebook):
         "[aria-controls=nb-audit]",
         param("[aria-controls=nb-expanded-dialog]", marks=mark.xfail(reason=NEEDS_WORK)),
         param("[aria-controls=nb-visibility-dialog]", marks=mark.xfail(reason=NEEDS_WORK)),
-        # param("nada", marks=mark.xfail(reason="no selector")),
-        # failing selectors timeout and slow down tests.
     ],
 )
 def test_dialogs(lorenz, dialog):
@@ -38,14 +39,11 @@ def test_dialogs(lorenz, dialog):
     lorenz.run().raises()
 
 
-SNIPPET_FONT_SIZE = (
-    """window.getComputedStyle(document.querySelector("body")).getPropertyValue("font-size")"""
-)
-
-
 def test_settings_font_size(lorenz):
     """Test that the settings make their expected changes."""
-    assert lorenz.page.evaluate(SNIPPET_FONT_SIZE) == "16px", "the default font size is unexpected"
+    assert (
+        lorenz.page.evaluate(JS.SNIPPET_FONT_SIZE) == "16px"
+    ), "the default font size is unexpected"
     lorenz.page.click("[aria-controls=nb-settings]")
     lorenz.page.locator("[name=font-size]").select_option("xx-large")
-    assert lorenz.page.evaluate(SNIPPET_FONT_SIZE) == "32px", "font size not changed"
+    assert lorenz.page.evaluate(JS.SNIPPET_FONT_SIZE) == "32px", "font size not changed"
