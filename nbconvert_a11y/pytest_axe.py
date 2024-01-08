@@ -25,6 +25,8 @@ from typing import Any
 import exceptiongroup
 from pytest import fixture
 
+from nbconvert_a11y.exceptions import Violation, Violations
+
 
 # selectors for regions of the notebook
 class SELECTORS:
@@ -134,37 +136,6 @@ class Results(Base):
         if exc:
             raise exc
 
-
-class Violation(Exception, Base):
-    """an exception class that generates exceptions based on data payloads."""
-
-    map = {}
-
-    @classmethod
-    def new_type(cls, id):
-        bases = (cls,)
-        if isinstance(id, tuple):
-            id, bases = id
-        if id in cls.map:
-            return cls.map[id]
-        return cls.map.setdefault(id, type(id, bases, {}))
-
-    def __class_getitem__(cls, id):
-        return cls.new_type(id)
-
-    @classmethod
-    def cast(cls, data):
-        return cls
-
-    def __new__(cls, **kwargs):
-        target = cls.cast(kwargs)
-        if cls is not target:
-            return target(**kwargs)
-        self = super().__new__(cls, **kwargs)
-        self.__init__(**kwargs)
-        return self
-
-
 class AxeViolation(Violation):
     id: str = dataclasses.field(repr=False)
     impact: str | None = dataclasses.field(repr=False)
@@ -205,63 +176,6 @@ class AxeViolation(Violation):
             if len(key) > N:
                 key = key[:N] + "..."
             self.elements[key].extend(node["target"])
-
-
-# we make extra refinements to way that we right tests.
-# using expected/unexpected passes/failures allows us to map
-# out what we do and do not know about complex systems.
-# we can use expected failures to isolate known inaccessibilities.
-# capturing these known conditions makes it possible to creates issues
-# and solutions to these violations.
-# sometimes, combinations of failure conditions might indicate http failures
-# and an inability to assess content.
-# unexpacted passes are situations where an upstream might have been fixed
-# and work is required on the test harness to remove a once identified inaccessibility.
-# these combinations of tests scenarios can be useful retrofitting inaccessible systems.
-class ExpectedFail(ExceptionGroup):
-    """raised when a collection of expected failures are matched"""
-
-
-# expected to fail, but not raised
-class UnexpectedPass(Exception):
-    """raised when expected failure is NOT matched"""
-
-
-# raised, but not known to raise
-class UnexpectedFail(ExceptionGroup):
-    """raised when an unmatched failure is encountered"""
-
-
-class Violations(ExceptionGroup):
-    exception = Violation
-
-    def xfail(self, *matches):
-        exceptions = []
-        expected_fail, unexpected_fail = self.split(matches or tuple())
-        unexpected_pass = set()
-        if expected_fail:
-            unexpected_pass.update(map(type, expected_fail.exceptions))
-            unexpected_pass = set(matches) - unexpected_pass
-            if unexpected_pass:
-                exceptions.append(UnexpectedPass(tuple(unexpected_pass)))
-        if unexpected_fail:
-            exceptions.append(UnexpectedFail(unexpected_fail.message, unexpected_fail.exceptions))
-        if (unexpected_fail or unexpected_pass) and expected_fail:
-            exceptions.append(expected_fail)
-        if not exceptions:
-            if expected_fail:
-                return ExpectedFail("all expected failures found", expected_fail.exceptions)
-            return
-        if len(exceptions) == 1:
-            return exceptions[0]
-        return Violations("unexpected passes and failures", tuple(exceptions))
-
-    @classmethod
-    def from_violations(cls, data):
-        return NotImplementedError()
-
-    # __repr__ = __str__ = ExceptionGroup.__str__
-
 
 class AxeViolations(Violations):
     exception = AxeViolation
