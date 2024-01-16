@@ -8,6 +8,27 @@
     --nb-font-size: 16px;
     --nb-font-family: serif;
     --nb-line-height: 1.5;
+    --nb-prompt-input: "In";
+    --nb-prompt-output: "Out";
+    --nb-prompt-left: "[";
+    --nb-prompt-right: "]";
+}
+
+
+.cell-prompt-in > .cell-prompt-left:before {
+    content: var(--nb-prompt-input);
+}
+
+.cell-prompt-out > .cell-prompt-left:before {
+    content: var(--nb-prompt-output);
+}
+
+.cell-prompt-left > span:before {
+    content: var(--nb-prompt-left);
+}
+
+.cell-prompt-right > span:after {
+    content: var(--nb-prompt-right);
 }
 
 body {
