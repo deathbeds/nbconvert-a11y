@@ -38,7 +38,7 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
 {% block body_loop %}
 {# the most consistent implementation would connect the input visibility to a form #}
 <table id="cells" role="presentation">
-    <tbody role="list">
+    <tbody role="list" aria-labelledby="nb-notebook-label nb-cells-label">
         <tr hidden>
             {% for col in COLUMNS %}
             <th scope="col">{{col}}</th>

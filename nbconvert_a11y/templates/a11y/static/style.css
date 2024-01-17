@@ -8,28 +8,8 @@
     --nb-font-size: 16px;
     --nb-font-family: serif;
     --nb-line-height: 1.5;
-    --nb-prompt-input: "In";
-    --nb-prompt-output: "Out";
-    --nb-prompt-left: "[";
-    --nb-prompt-right: "]";
 }
 
-
-.cell-prompt-in > .cell-prompt-left:before {
-    content: var(--nb-prompt-input);
-}
-
-.cell-prompt-out > .cell-prompt-left:before {
-    content: var(--nb-prompt-output);
-}
-
-.cell-prompt-left > span:before {
-    content: var(--nb-prompt-left);
-}
-
-.cell-prompt-right > span:after {
-    content: var(--nb-prompt-right);
-}
 
 body {
     font-size: var(--nb-font-size);
@@ -99,7 +79,7 @@ textarea[name=source] {
 
 
 #nb-dialogs details:not([open])~dialog:not([open]):not(:focus-within):not(:active),
-legend:not(:focus-within):not(:active),
+/* legend:not(:focus-within):not(:active), */
 details.log:not([open])+table,
 .visually-hidden:not(:focus-within):not(:active) {
     clip: rect(0 0 0 0);
@@ -137,9 +117,12 @@ dialog form>* {
     font-size: max(44px, var(--nb-font-size));
 }
 
-.wcag-a details>summary[inert]~textarea[name=source],
-.wcag-aa details>summary[inert]~textarea[name=source],
-.wcag-aaa details>summary[inert]~textarea[name=source]~*,
-details>summary:not([inert])~textarea[name=source]~* {
+.wcag-a textarea[name=source],
+.wcag-aa textarea[name=source],
+.wcag-aaa textarea[name=source]~* {
+    display: none;
+}
+
+fieldset[data-outputs="0"] {
     display: none;
 }
