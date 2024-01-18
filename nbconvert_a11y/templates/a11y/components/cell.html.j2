@@ -36,7 +36,7 @@ that would include talking to the kernel. #}
 
 
 {% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
-<label for="cell-{{i}}-source">
+<label id="cell-{{i}}-source-label">
     <span>In</span>
     <span aria-hidden="true">[</span>
     <span>{{execution_count}}</span>
