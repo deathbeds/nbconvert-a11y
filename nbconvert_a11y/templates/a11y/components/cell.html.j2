@@ -30,18 +30,16 @@ that would include talking to the kernel. #}
 {% endmacro %}
 
 {% macro cell_execution_count(i, execution_count, hidden=False) %}
-<output form="cell-{{i}}" name="execution_count" id="cell-{{i}}-execution_count"
-    {{hide(hidden)}}>#{{execution_count}}</output>
-{% endmacro %}
-
-
-{% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
 <label id="cell-{{i}}-source-label">
     <span>{{resources.prompt_in}}</span>
     <span aria-hidden="true">{{resources.prompt_left}}</span>
     <span>{{execution_count}}</span>
     <span aria-hidden="true">{{resources.prompt_right}}</span>
 </label>
+{% endmacro %}
+
+
+{% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
 <textarea form="cell-{{i}}" id="cell-{{i}}-source" name="source" rows="{{source.splitlines().__len__()}}"
     aria-labelledby="cell-{{i}}-source-label nb-source-label" readonly>{{source}}</textarea>
 <div role="group" aria-labelledby="nb-source-label">
@@ -72,7 +70,7 @@ that would include talking to the kernel. #}
 {# the following span should get its own column in the table #}
 <fieldset {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
     <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc">
-        <span>{{resources.prompt_output}}</span>
+        <span>{{resources.prompt_out}}</span>
         <span aria-hidden="true">{{resources.prompt_left}}</span>
         <span>{{execution_count}}</span>
         <span aria-hidden="true">{{resources.prompt_right}}</span>

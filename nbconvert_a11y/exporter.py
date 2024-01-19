@@ -94,8 +94,8 @@ class A11yExporter(PostProcess, HTMLExporter):
         config=True
     )
     # TF: id love for these definitions to have their own parent class.
-    prompt_input = CUnicode("In")
-    prompt_output = CUnicode("Out")
+    prompt_in = CUnicode("In")
+    prompt_out = CUnicode("Out")
     prompt_left = CUnicode("[")
     prompt_right = CUnicode("]")
 
@@ -145,8 +145,8 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["code_theme"] = THEMES[self.code_theme]
         resources["axe_url"] = self.axe_url
         resources["include_sa11y"] = self.include_sa11y
-        resources["prompt_input"] = self.prompt_input
-        resources["prompt_output"] = self.prompt_output
+        resources["prompt_in"] = self.prompt_in
+        resources["prompt_out"] = self.prompt_out
         resources["prompt_left"] = self.prompt_left
         resources["prompt_right"] = self.prompt_right
 
