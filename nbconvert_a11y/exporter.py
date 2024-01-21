@@ -94,10 +94,10 @@ class A11yExporter(PostProcess, HTMLExporter):
         config=True
     )
     # TF: id love for these definitions to have their own parent class.
-    prompt_in = CUnicode("In")
-    prompt_out = CUnicode("Out")
-    prompt_left = CUnicode("[")
-    prompt_right = CUnicode("]")
+    prompt_in = CUnicode("In").tag(config=True)
+    prompt_out = CUnicode("Out").tag(config=True)
+    prompt_left = CUnicode("[").tag(config=True)
+    prompt_right = CUnicode("]").tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
