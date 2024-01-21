@@ -123,6 +123,7 @@ dialog form>* {
     display: none;
 }
 
-fieldset[data-outputs="0"] {
+fieldset[data-outputs="0"],
+.markdown > .nb-execution_count {
     display: none;
 }
