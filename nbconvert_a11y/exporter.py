@@ -239,8 +239,10 @@ def mdtoc(html):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
-
-            id = slugify(header.string)
+            if header.string:
+                id = slugify(header.string)
+            else:
+                continue
 
         # there is missing logistics for managely role=heading
         # adding code group semantics will motivate this addition
@@ -261,8 +263,10 @@ def heading_links(html):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
-
-            id = slugify(header.string)
+            if header.string:
+                id = slugify(header.string)
+            else:
+                continue
 
         link = soupify(f"""<a href="#{id}">{header.string}</a>""").body.a
         header.clear()
