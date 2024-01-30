@@ -120,12 +120,13 @@ td[role="none"]:not([hidden]) {
     display: unset;
 }
 
-#cells tr.cell,
+#cells .cell,
 #cells tbody {
     display: flex;
     flex-direction: column;
 }
 
+ol[reversed]#cells,
 [reversed]#cells tbody {
     flex-direction: column-reverse;
 }
