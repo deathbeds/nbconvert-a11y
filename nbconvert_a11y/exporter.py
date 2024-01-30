@@ -131,8 +131,9 @@ class A11yExporter(PostProcess, HTMLExporter):
         )
         return c
 
-    def from_notebook_node(self, nb, resources=None, **kw):
-        # this is trash and needs serious fixing
+    def init_resources(self, resources=None):
+        if resources is None:
+            resources = {}
         resources = resources or {}
         resources["include_axe"] = self.include_axe
         resources["include_settings"] = self.include_settings
@@ -149,8 +150,12 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["prompt_out"] = self.prompt_out
         resources["prompt_left"] = self.prompt_left
         resources["prompt_right"] = self.prompt_right
+        return resources
 
-        return super().from_notebook_node(nb, resources, **kw)
+    def from_notebook_node(self, nb, resources=None, **kw):
+        # this is trash and needs serious fixing
+
+        return super().from_notebook_node(nb, self.init_resources(resources), **kw)
 
     def post_process_html(self, body):
         """A final pass at the exported html to add table of contents, heading links, and other a11y affordances."""
@@ -239,6 +244,7 @@ def mdtoc(html):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
+
             if header.string:
                 id = slugify(header.string)
             else:
@@ -263,6 +269,7 @@ def heading_links(html):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
+
             if header.string:
                 id = slugify(header.string)
             else:
