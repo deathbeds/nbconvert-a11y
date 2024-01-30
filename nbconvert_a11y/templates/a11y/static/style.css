@@ -104,6 +104,15 @@ the design decisions are focused native elements so that the assistive technolog
     display: none;
 }
 
+/* this is only needed for the lsit template variant */
+ol#cells {
+    margin: unset;
+    padding: unset;
+}
+
+li.cell {
+    list-style-type: none;
+}
 
 /* ## notebook components layout */
 
