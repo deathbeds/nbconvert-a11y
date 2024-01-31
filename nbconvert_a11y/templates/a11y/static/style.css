@@ -120,8 +120,9 @@ td[role="none"]:not([hidden]) {
     display: unset;
 }
 
-#cells .cell,
-#cells tbody {
+main>.cell,
+#cells>.cell,
+#cells>tbody {
     display: flex;
     flex-direction: column;
 }
