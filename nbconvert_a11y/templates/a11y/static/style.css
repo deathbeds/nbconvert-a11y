@@ -122,7 +122,7 @@ td[role="none"]:not([hidden]) {
 
 main>.cell,
 #cells>.cell,
-#cells>tbody {
+#cells>tbody>.cell {
     display: flex;
     flex-direction: column;
 }
