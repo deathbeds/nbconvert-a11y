@@ -72,8 +72,11 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_settings = Bool(False, help="include configurable accessibility settings dialog.").tag(
         config=True
     )
+    # if help is not included the a bunch of aria label get fucked up and we fail
+    # accessibility. if help information isn't included then we'll at least to included
+    # a vocabulary to reference from the aria-labelledby aria-describedby
     include_help = Bool(
-        False, help="include help and supplementary descriptions about notebooks and cells"
+        True, help="include help and supplementary descriptions about notebooks and cells"
     ).tag(config=True)
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
