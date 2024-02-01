@@ -243,7 +243,7 @@ def mdtoc(html):
     import io
 
     toc = io.StringIO()
-    for header in html.select("#cells :is(h1,h2,h3,h4,h5,h6)"):
+    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
@@ -255,7 +255,6 @@ def mdtoc(html):
 
         # there is missing logistics for managely role=heading
         # adding code group semantics will motivate this addition
-
         level = int(header.name[-1])
         toc.write("  " * (level - 1) + f"* [{header.string}](#{id})\n")
     return toc.getvalue()
