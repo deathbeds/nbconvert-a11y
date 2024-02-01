@@ -121,9 +121,13 @@ td[role="none"]:not([hidden]) {
     display: unset;
 }
 
+table {
+    border-spacing: unset;
+}
+
 main>.cell,
-#cells>.cell,
-#cells>tbody>.cell {
+#cells .cell,
+#cells > tbody {
     display: flex;
     flex-direction: column;
 }
