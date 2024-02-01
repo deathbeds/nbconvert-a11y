@@ -99,6 +99,7 @@ the design decisions are focused native elements so that the assistive technolog
 .markdown textarea[name=source]+[role=group],
 .wcag-a textarea[name=source],
 .wcag-aa textarea[name=source],
+.wcag-aaa .markdown textarea[name=source],
 /* this group selector is very ambiguous */
 .wcag-aaa textarea[name=source]+[role=group] {
     display: none;
