@@ -65,7 +65,7 @@ that would include talking to the kernel. #}
 {% set CODE = cell_type == "code" %}
 {% if CODE %}
 {% if execution_count and not outputs %}
-<span class="nb-outputs" class="visually-hidden" id="cell-{{i}}-outputs-len">In {{execution_count}} has
+<span class="nb-outputs visually-hidden" id="cell-{{i}}-outputs-len">In {{execution_count}} has
     {{outputs.__len__()}}
     outputs.</span>
 {% else %}
