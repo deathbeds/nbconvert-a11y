@@ -71,7 +71,8 @@ that would include talking to the kernel. #}
 {% else %}
 {# the following span should get its own column in the table #}
 <fieldset class="nb-outputs" {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
-    <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc">
+    <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc" {{hide(not
+        resources.global_content_filter.include_output_prompt)}}>
         <span>{{resources.prompt_out}}</span>
         <span aria-hidden="true">{{resources.prompt_left}}</span>
         <span>{{execution_count}}</span>

@@ -6,12 +6,30 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
 "metadata", "outputs"] %}
 
 {% macro cell_row(cell, loop) %}
+{% set include_outputs = True %}
+{% set include_input = True %}
+{% if cell.cell_type in ["raw"] %}
+{% set include_input = resources.global_content_filter.include_raw and not (
+cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.get("jupyter",
+{}).get("source_hidden", False))%}
+{% elif cell.cell_type in ["markdown"]%}
+{% set include_input = resources.global_content_filter.include_markdown and not (
+cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.get("jupyter",
+{}).get("source_hidden", False)) %}
+{% elif cell.cell_type in ["code"]%}
+{% set include_input = resources.global_content_filter.include_code and not (not resources.global_content_filter.include_input
+or cell.metadata.get("jupyter", {}).get("source_hidden", False))
+or cell.metadata.get("transient",{}).get("remove_source", false) %}
+{% set include_outputs = cell.outputs and resources.global_content_filter.include_output
+or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)%}
+{% endif %}
 <tr role="listitem" class="cell {{cell.cell_type}}"
     aria-labelledby="nb-cell-label {{loop.index}} cell-{{loop.index}}-cell_type"
     data-loc="{{cell.source.splitlines().__len__()}}" {% if cell.cell_type=="code" %} {% endif %}
     data-index="{{loop.index}}">
     <td role="none" class="nb-anchor">{{cell_anchor(loop.index, cell.cell_type)}}</td>
-    <td role="none" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or cell.execution_count==None)}}>
+    <td role="none" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or cell.execution_count==None or not
+        resources.global_content_filter.include_input_prompt)}}>
         {{cell_execution_count(loop.index, cell.execution_count)}}
     </td>
     <td role="none" class="nb-cell_type" hidden>{{cell_cell_type(loop.index, cell.cell_type)}}</td>
@@ -23,13 +41,14 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
         {% set t1 = cell.get("metadata", {}).get("execution", {}).get("shell.execute_reply", "") %}
         {{time(t1)}}
     </td>
-    <td role="none" class="nb-source" {{hide(cell.cell_type=="markdown" )}}>{{cell_source(loop.index,
+    <td role="none" class="nb-source" {{hide(cell.cell_type=="markdown" or not include_input)}}>{{cell_source(loop.index,
         cell.source, cell.cell_type, cell.execution_count)}}</td>
     <td role="none" class="nb-metadata" hidden>{{cell_metadata(loop.index, cell.get("metadata", {}))}}</td>
     {# it was noted in a video that lines of code were helpful in assistive descriptions.
     lines of code are part of the gestalt of code forms. #}
     <td role="none" class="nb-loc" id="cell-{{loop.index}}-loc" hidden>{{loc(cell)}}</td>
-    <td role="none" class="nb-outputs">{{cell_output(loop.index, cell, cell.source, cell.outputs,
+    <td role="none" class="nb-outputs" {{hide(not include_outputs)}}>{{cell_output(loop.index, cell, cell.source,
+        cell.outputs,
         cell.cell_type,
         cell.execution_count)}}</td>
 </tr>
@@ -38,6 +57,11 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
 {% block body_loop %}
 {# the most consistent implementation would connect the input visibility to a form #}
 <table id="cells" role="presentation">
+    <colgroup>
+        {% for col in COLUMNS %}
+        <col class="nb-{{col}}">
+        {% endfor %}
+    </colgroup>
     <tbody role="list" aria-labelledby="nb-notebook-label nb-cells-label">
         <tr hidden>
             {% for col in COLUMNS %}
@@ -93,7 +117,7 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
 </table>
 {% endblock body_loop %}
 
-{# adding a template element is a forward thinking move because 
+{# adding a template element is a forward thinking move because
 the template provides the structure for new cells when they are added. #}
 {% block template_element %}
 <template>
