@@ -17,7 +17,7 @@ const BODY = document.querySelector("body"), SELECTORS = {
         "row": "row",
         "header": "rowheader",
         "cell": "cell",
-    }, "landmark": {
+    }, "region": {
         "table": "presentation",
         "body": "presentation",
         "row": "region",

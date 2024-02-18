@@ -16,7 +16,8 @@ settings provides multiple screen reader navigation techniques when the dialog i
                     <li>{{select("color scheme", {"light mode": "light", "dark mode": "dark"})}}</li>
                     <li>{{input_number("margin", 5, min=0, max=40, step=5, extra_title="%")}}</li>
                     <li>{{input_number("line height", 1.5, min=0.5, max=3, step=0.1)}}</li>
-                    <li>{{select("cell navigation", values="list table landmark presentation".split(), disabled="grid
+                    <li>{{select("cell navigation", default=resources.table_pattern.__name__.lower(), values="list table
+                        region presentation".split(), disabled="grid
                         treegrid
                         tree".split())}}</li>
                     {% set priority = {"Triple A": "AAA","Double A": "AA", "Single A": "A"}%}
