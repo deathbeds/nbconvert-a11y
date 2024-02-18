@@ -17,16 +17,17 @@ cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.g
 cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.get("jupyter",
 {}).get("source_hidden", False)) -%}
 {%- elif cell.cell_type in ["code"]-%}
-{%- set include_input = resources.global_content_filter.include_code and not (not resources.global_content_filter.include_input
+{%- set include_input = resources.global_content_filter.include_code and not (not
+resources.global_content_filter.include_input
 or cell.metadata.get("jupyter", {}).get("source_hidden", False))
 or cell.metadata.get("transient",{}).get("remove_source", false) -%}
 {%- set include_outputs = cell.outputs and resources.global_content_filter.include_output
 or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {%- endif -%}
-<tr role="listitem" class="cell {{cell.cell_type}}"
-    aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type"
-    data-loc="{{cell.source.splitlines().__len__()}}" {% if cell.cell_type=="code" %} {% endif %}
-    data-index="{{index}}">
+{%- set slide_type = cell.get("metadata", {}).get("slide_type") -%}
+<tr role="listitem" class="cell {{cell.cell_type}}" aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type"
+    data-loc="{{cell.source.splitlines().__len__()}}" {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}"
+    {% if slide_type %} data-slide_type="{{slide_type}}" {% endif %}>
     <td role="none" class="nb-anchor">{{cell_anchor(index, cell.cell_type, cell.execution_count, cell.outputs)}}</td>
     <td role="none" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or cell.execution_count==None or not
         resources.global_content_filter.include_input_prompt)}}>
