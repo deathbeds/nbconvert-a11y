@@ -86,8 +86,6 @@ that would include talking to the kernel. #}
         <span>{{execution_count}}</span>
         <span aria-hidden="true">{{resources.prompt_right}}</span>
     </legend>
-    <span class="visually-hidden" id="cell-{{i}}-outputs-len">has {{outputs.__len__()}} output{% if outputs.__len__()>1
-        %}s{% endif %}</span>
     {% if outputs %}
     {# the output description should mention the number of outputs
     saying zero outputs should be an option. a cell without an output is probably a violation. #}
