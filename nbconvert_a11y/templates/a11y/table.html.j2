@@ -25,15 +25,18 @@ or cell.metadata.get("transient",{}).get("remove_source", false) -%}
 or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {%- endif -%}
 {%- set slide_type = cell.get("metadata", {}).get("slide_type") -%}
-<tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}" aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type"
-    data-loc="{{cell.source.splitlines().__len__()}}" {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}"
-    {% if slide_type %} data-slide_type="{{slide_type}}" {% endif %}>
-    <th role="{{resources.table_pattern.rowheader}}" class="nb-anchor" scope="row">{{cell_anchor(index, cell.cell_type, cell.execution_count, cell.outputs)}}</td>
-    <td role="{{resources.table_pattern.cell}}" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or cell.execution_count==None or not
-        resources.global_content_filter.include_input_prompt)}}>
+<tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}"
+    aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type" data-loc="{{cell.source.splitlines().__len__()}}"
+    {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}" {% if slide_type %}
+    data-slide_type="{{slide_type}}" {% endif %}>
+    <th role="{{resources.table_pattern.rowheader}}" class="nb-anchor" scope="row">{{cell_anchor(index, cell.cell_type,
+        cell.execution_count, cell.outputs)}}</td>
+    <td role="{{resources.table_pattern.cell}}" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or
+        cell.execution_count==None or not resources.global_content_filter.include_input_prompt)}}>
         {{cell_execution_count(index, cell.execution_count)}}
     </td>
-    <td role="{{resources.table_pattern.cell}}" class="nb-cell_type" hidden>{{cell_cell_type(index, cell.cell_type)}}</td>
+    <td role="{{resources.table_pattern.cell}}" class="nb-cell_type" hidden>{{cell_cell_type(index, cell.cell_type)}}
+    </td>
     <td role="{{resources.table_pattern.cell}}" class="nb-toolbar" hidden>{{cell_form(index)}}</td>
     <td role="{{resources.table_pattern.cell}}" class="nb-start" id="cell-{{index}}-start" hidden>
         {% set t0 = cell.get("metadata", {}).get("execution", {}).get("iopub.execute_input", "") %}
@@ -42,13 +45,16 @@ or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
         {% set t1 = cell.get("metadata", {}).get("execution", {}).get("shell.execute_reply", "") %}
         {{time(t1)}}
     </td>
-    <td role="{{resources.table_pattern.cell}}" class="nb-source" {{hide(cell.cell_type=="markdown" or not include_input)}}>{{cell_source(index,
+    <td role="{{resources.table_pattern.cell}}" class="nb-source" {{hide(cell.cell_type=="markdown" or not
+        include_input)}}>{{cell_source(index,
         cell.source, cell.cell_type, cell.execution_count)}}</td>
-    <td role="{{resources.table_pattern.cell}}" class="nb-metadata" hidden>{{cell_metadata(index, cell.get("metadata", {}))}}</td>
+    <td role="{{resources.table_pattern.cell}}" class="nb-metadata" hidden>{{cell_metadata(index, cell.get("metadata",
+        {}))}}</td>
     {# it was noted in a video that lines of code were helpful in assistive descriptions.
     lines of code are part of the gestalt of code forms. #}
     <td role="{{resources.table_pattern.cell}}" class="nb-loc" id="cell-{{index}}-loc" hidden>{{loc(cell)}}</td>
-    <td role="{{resources.table_pattern.cell}}" class="nb-outputs" {{hide(not include_outputs)}}>{{cell_output(index, cell, cell.source,
+    <td role="{{resources.table_pattern.cell}}" class="nb-outputs" {{hide(not include_outputs)}}>{{cell_output(index,
+        cell, cell.source,
         cell.outputs,
         cell.cell_type,
         cell.execution_count)}}</td>
@@ -74,46 +80,6 @@ or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
         {{cell_row(cell, loop.index)}}
         {% endblock any_cell %}
         {%- endfor -%}
-    </tbody>
-</table>
-
-
-<table class="nb-cells-footer" hidden>
-    <tbody>
-        {# needs a header row #}
-        <tr class="total">
-            <th scope="row">all cells</th>
-            <th scope="row">count</th>
-            <td class="nb-ordered">{{ordered(nb)}}</td>
-            <td class="nb-cell_type">{{nb.cells.__len__()}}</td>
-            <td class="nb-source"></td>
-            <td class="nb-outputs">{{count_outputs(nb)}}</td>
-            <td class="nb-toolbar"></td>
-            <td class="nb-metadata">{# list keys #}</td>
-            <td class="nb-loc">{{count_loc(nb)}}</td>
-        </tr>
-        <tr class="code">
-            <th scope="row">code cells</th>
-            <th scope="row">count</th>
-            <td class="nb-ordered">{{ordered(nb)}}</td>
-            <td class="nb-cell_type">{{nb.cells.__len__()}}</td>
-            <td class="nb-source"></td>
-            <td class="nb-outputs">{{count_outputs(nb)}}</td>
-            <td class="nb-toolbar"></td>
-            <td class="nb-metadata">{# list keys #}</td>
-            <td class="nb-loc">{{count_loc(nb)}}</td>
-        </tr>
-        <tr class="markdown">
-            <th scope="row">markdown cells</th>
-            <th scope="row">count</th>
-            <td class="nb-ordered"></td>
-            <td class="nb-cell_type">{{nb.cells.__len__()}}</td>
-            <td class="nb-source"></td>
-            <td class="nb-outputs"></td>
-            <td class="nb-toolbar"></td>
-            <td class="nb-metadata">{# list keys #}</td>
-            <td class="nb-loc">{{count_loc(nb)}}</td>
-        </tr>
     </tbody>
 </table>
 {% endblock body_loop %}
