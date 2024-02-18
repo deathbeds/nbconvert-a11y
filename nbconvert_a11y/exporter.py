@@ -112,6 +112,9 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
     ).tag(config=True)
+    include_summary = Bool(
+        True, help="collect notebook properties into a summary"
+    ).tag(config=True)
     wcag_priority = Enum(
         ["AAA", "AA", "A"], "AA", help="the default inital wcag priority to start with"
     ).tag(config=True)
@@ -150,13 +153,16 @@ class A11yExporter(PostProcess, HTMLExporter):
         import html
 
         self.environment.globals.update(json=json, markdown=get_markdown, highlight=highlight)
-        self.environment.filters.update(escape_html=html.escape)
-        self.environment.globals.update(
-            formatter=pygments.formatters,
+        self.environment.filters.update(
+            escape_html=html.escape,
             count_loc=count_loc,
+            count_cell_loc=count_cell_loc,
             count_outputs=count_outputs,
             count_code_cells=count_code_cells,
-            ordered=ordered,
+            is_ordered=is_ordered,
+        )
+        self.environment.globals.update(
+            formatter=pygments.formatters,
             schema=SCHEMA,
             datetime=datetime,
         )
@@ -179,6 +185,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["include_settings"] = self.include_settings
         resources["include_help"] = self.include_help
         resources["include_toc"] = self.include_toc
+        resources["include_summary"] = self.include_summary
         resources["include_visibility"] = self.include_upload
         resources["include_upload"] = self.include_upload
         resources["wcag_priority"] = self.wcag_priority
@@ -362,12 +369,12 @@ def describe_main(soup):
         )
 
 
-def ordered(nb) -> str:
+def is_ordered(nb) -> str:
     """Measure if the notebook is ordered"""
     start = 0
     for cell in nb.cells:
         if cell["cell_type"] == "code":
-            if any("".join(cell.source).strip()):
+            if not count_cell_loc(cell):
                 continue
             start += 1
             if start != cell["execution_count"] and start:

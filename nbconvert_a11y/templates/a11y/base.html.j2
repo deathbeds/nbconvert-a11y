@@ -40,6 +40,7 @@ the notebook experiennce from browse to edit/focus mode.
         {{site_navigation | default("")}}
     </header>
     <main aria-labelledby="nb-notebook-label">
+        {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2"%}{%- endif -%}
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
         {% endblock body_header %}
 
