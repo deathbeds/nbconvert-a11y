@@ -126,8 +126,8 @@ table {
 }
 
 main>.cell,
-#cells .cell,
-#cells > tbody {
+#cells:not([role=table]) .cell,
+#cells:not([role=table])>tbody {
     display: flex;
     flex-direction: column;
 }
