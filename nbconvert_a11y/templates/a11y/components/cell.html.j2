@@ -76,7 +76,9 @@ that would include talking to the kernel. #}
 <span class="nb-outputs visually-hidden" id="cell-{{i}}-outputs-len">{{outputs.__len__()}} outputs.</span>
 {% endif %}
 {# the following span should get its own column in the table #}
-<fieldset class="nb-outputs" {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
+<fieldset
+    class="nb-outputs{% if cell.metadata.get('scrolled')%} nb-scrolled{% endif %}{% if cell.metadata.get('collapsed')%} nb-collapsed{% endif %}"
+    {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
     <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc" {{hide(not
         resources.global_content_filter.include_output_prompt)}}>
         <span>{{resources.prompt_out}}</span>
