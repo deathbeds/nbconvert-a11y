@@ -17,6 +17,7 @@ the variables specify critical degrees of freedom in the notebook style.
     --nb-font-size: 16px;
     --nb-font-family: serif;
     --nb-line-height: 1.5;
+    --nb-scrolled-height: 600px;
 }
 
 /* map css variables to css properties on the `body` elements.
@@ -216,4 +217,13 @@ details.log:not([open])+table,
     position: absolute;
     white-space: nowrap;
     width: 1px;
+}
+
+.nb-outputs.nb-scrolled {
+    max-height: var(--nb-scrolled-height);
+    overflow: auto;
+}
+
+.nb-outputs.nb-collapsed {
+    display: none;
 }
