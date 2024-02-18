@@ -209,7 +209,8 @@ input[type="checkbox"] {
 #nb-dialogs details:not([open])~dialog:not([open]):not(:focus-within):not(:active),
 /* legend:not(:focus-within):not(:active), */
 details.log:not([open])+table,
-.visually-hidden:not(:focus-within):not(:active) {
+.visually-hidden:not(:focus-within):not(:active),
+.visually-hide {
     clip: rect(0 0 0 0);
     clip-path: inset(50%);
     height: 1px;
