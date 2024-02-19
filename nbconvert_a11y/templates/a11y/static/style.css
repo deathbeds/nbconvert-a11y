@@ -47,10 +47,6 @@ dialog form>* {
     display: block;
 }
 
-#nb-dialogs details[open]~dialog {
-    position: relative;
-}
-
 
 /* ## wcag accessibility guidelines as a feature
 

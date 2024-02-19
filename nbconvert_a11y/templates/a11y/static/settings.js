@@ -2,7 +2,7 @@ const BODY = document.querySelector("body"), SELECTORS = {
     "table": "table#cells",
     "body": "table#cells>tbody",
     "row": "table#cells>tbody>tr",
-    "heading": "table#cells>tbody>tr>th",
+    "header": "table#cells>tbody>tr>th",
     "cell": "table#cells>tbody>tr>td",
 }, ROLES = {
     "list": {
