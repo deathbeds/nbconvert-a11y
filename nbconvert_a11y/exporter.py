@@ -126,6 +126,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     ).tag(config=True)
     include_visibility = Bool(False, help="include visibility toggle").tag(config=True)
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
+    allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
     exclude_anchor_links = Bool(True).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
@@ -200,6 +201,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["exclude_anchor_links"] = self.exclude_anchor_links
         resources["hide_anchor_links"] = self.hide_anchor_links
         resources["table_pattern"] = getattr(Roles, self.table_pattern)
+        resources["allow_run_mode"] = self.allow_run_mode
         return resources
 
     def from_notebook_node(self, nb, resources=None, **kw):
