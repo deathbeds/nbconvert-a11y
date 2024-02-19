@@ -1,6 +1,6 @@
 {%- set title = nb.metadata.get("title") -%}
 {%- set description = nb.metadata.get("description") -%}
-{% set describedby = "nb-ct-total nb-cells-label nb-ct-code nb-code-label nb-state nb-ct-loc nb-loc-label
+{% set describedby = "nb-ct-total nb-cells-label nb-ct-code nb-state nb-ct-loc nb-loc-label
 nb-ct-outputs nb-outputs-label"%}
 <details>
     <summary id="nb-summary-label" aria-describedby="{{describedby}}">notebook summary</summary>
@@ -19,7 +19,7 @@ nb-ct-outputs nb-outputs-label"%}
         {%- endif -%}
         <dt>cells</dt>
         <dd id="nb-ct-total">{{len(nb.cells)}} total</dd>
-        <dd id="nb-ct-code">{{nb | count_code_cells}} <span id="nb-code-label">code</span></dd>
+        <dd id="nb-ct-code">{{nb | count_code_cells}} code</dd>
         <dd></dd>
         <dt>state</dt>
         <dd id="nb-state">{{nb | is_ordered}}</dd>
