@@ -30,6 +30,38 @@ AXE = f"https://cdnjs.cloudflare.com/ajax/libs/axe-core/{AXE_VERSION}/axe.min.js
 SCHEMA = nbformat.validator._get_schema_json(nbformat.v4)
 
 
+class Roles:
+    """different aria settings for the notebook respresentation"""
+
+    options = "Presentation", "Group", "Region", "List", "Table"
+
+    class Presentation:
+        table = "none"
+        rowgroup = "none"
+        row = "none"
+        columnheader = "none"
+        rowheader = "none"
+        cell = "none"
+
+    class Group(Presentation):
+        row = "group"
+
+    class Region(Presentation):
+        row = "region"
+
+    class List(Presentation):
+        rowgroup = "list"
+        row = "listitem"
+
+    class Table:
+        table = "table"
+        rowgroup = "rowgroup"
+        row = "row"
+        columnheader = "columnheader"
+        rowheader = "rowheader"
+        cell = "cell"
+
+
 THEMES = {
     "a11y": "a11y-{}",
     "a11y-high-contrast": "a11y-high-contrast-{}",
@@ -53,8 +85,7 @@ class PostProcess(Exporter):
         html = self.post_process_html(html) or html
         return html, resources
 
-    def post_process_html(self, body):
-        ...
+    def post_process_html(self, body): ...
 
 
 class A11yExporter(PostProcess, HTMLExporter):
@@ -81,6 +112,9 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
     ).tag(config=True)
+    include_summary = Bool(
+        True, help="collect notebook properties into a summary"
+    ).tag(config=True)
     wcag_priority = Enum(
         ["AAA", "AA", "A"], "AA", help="the default inital wcag priority to start with"
     ).tag(config=True)
@@ -92,11 +126,17 @@ class A11yExporter(PostProcess, HTMLExporter):
     ).tag(config=True)
     include_visibility = Bool(False, help="include visibility toggle").tag(config=True)
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
+    allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
     exclude_anchor_links = Bool(True).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
+    table_pattern = Enum(
+        list(Roles.options),
+        "List",
+        help="the presentation format of the cells to assistive technology",
+    ).tag(config=True)
     # TF: id love for these definitions to have their own parent class.
     prompt_in = CUnicode("In").tag(config=True)
     prompt_out = CUnicode("Out").tag(config=True)
@@ -114,13 +154,16 @@ class A11yExporter(PostProcess, HTMLExporter):
         import html
 
         self.environment.globals.update(json=json, markdown=get_markdown, highlight=highlight)
-        self.environment.filters.update(escape_html=html.escape)
-        self.environment.globals.update(
-            formatter=pygments.formatters,
+        self.environment.filters.update(
+            escape_html=html.escape,
             count_loc=count_loc,
+            count_cell_loc=count_cell_loc,
             count_outputs=count_outputs,
             count_code_cells=count_code_cells,
-            ordered=ordered,
+            is_ordered=is_ordered,
+        )
+        self.environment.globals.update(
+            formatter=pygments.formatters,
             schema=SCHEMA,
             datetime=datetime,
         )
@@ -143,6 +186,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["include_settings"] = self.include_settings
         resources["include_help"] = self.include_help
         resources["include_toc"] = self.include_toc
+        resources["include_summary"] = self.include_summary
         resources["include_visibility"] = self.include_upload
         resources["include_upload"] = self.include_upload
         resources["wcag_priority"] = self.wcag_priority
@@ -156,6 +200,8 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["prompt_right"] = self.prompt_right
         resources["exclude_anchor_links"] = self.exclude_anchor_links
         resources["hide_anchor_links"] = self.hide_anchor_links
+        resources["table_pattern"] = getattr(Roles, self.table_pattern)
+        resources["allow_run_mode"] = self.allow_run_mode
         return resources
 
     def from_notebook_node(self, nb, resources=None, **kw):
@@ -320,17 +366,17 @@ def describe_main(soup):
     """Add REFIDs to aria-describedby"""
     x = soup.select_one("#toc > details > summary")
     if x:
-        x.attrs["aria-describedby"] = soup.select_one("main").attrs[
-            "aria-describedby"
-        ] = "nb-cells-count-label nb-cells-label nb-code-cells nb-code-cells-label nb-ordered nb-loc nb-loc-label"
+        x.attrs["aria-describedby"] = soup.select_one("main").attrs["aria-describedby"] = (
+            "nb-cells-count-label nb-cells-label nb-code-cells nb-code-cells-label nb-ordered nb-loc nb-loc-label"
+        )
 
 
-def ordered(nb) -> str:
+def is_ordered(nb) -> str:
     """Measure if the notebook is ordered"""
     start = 0
     for cell in nb.cells:
         if cell["cell_type"] == "code":
-            if any("".join(cell.source).strip()):
+            if not count_cell_loc(cell):
                 continue
             start += 1
             if start != cell["execution_count"] and start:

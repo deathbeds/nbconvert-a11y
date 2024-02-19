@@ -1,0 +1,40 @@
+{%- set title = nb.metadata.get("title") -%}
+{%- set description = nb.metadata.get("description") -%}
+{% set describedby = "nb-ct-total nb-cells-label nb-ct-code nb-state nb-ct-loc nb-loc-label
+nb-ct-outputs nb-outputs-label"%}
+<section aria-labelledby="nb-summary-label">
+    <details>
+        <summary id="nb-summary-label" aria-describedby="{{describedby}}">notebook summary</summary>
+        <button aria-controls="nb-metadata" onclick="openDialog()">show metadata</button>
+        <dl aria-labelledby="nb-summary-label">
+            {%- if nb.metadata.get("title") -%}
+            <dt>title</dt>
+            <dd id="nb-title">{{nb.metadata.title}}</dd>
+            {%- endif -%}
+            {%- if nb.metadata.get("description") -%}
+            <dt>description</dt>
+            <dd id="">{{nb.metadata.description}}</dd>
+            {%- endif -%}
+            {%- if nb.metadata.get("authors") -%}
+            <dt>authors</dt>
+            {%- for author in nb.metadata.authors -%}<dd>{{author}}</dd>{%- endfor -%}
+            {%- endif -%}
+            <dt>cells</dt>
+            <dd id="nb-ct-total">{{len(nb.cells)}} total</dd>
+            <dd id="nb-ct-code">{{nb | count_code_cells}} code</dd>
+            <dd></dd>
+            <dt>state</dt>
+            <dd id="nb-state">{{nb | is_ordered}}</dd>
+            {% set lang = nb.metadata.get("language_info", {}).get("name") or nb.metadata.get("kernelspec",
+            {}).get("name")%}
+            {% if lang %}
+            <dt>language</dt>
+            <dd id="nb-lang">{{lang}}</dd>
+            {% endif %}
+            <dt id="nb-loc-label">lines of code</dt>
+            <dd id="nb-ct-loc">{{nb | count_loc}}</dd>
+            <dt>outputs</dt>
+            <dd id="nb-ct-outputs">{{nb | count_outputs }}</dd>
+        </dl>
+    </details>
+</section>

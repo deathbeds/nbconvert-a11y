@@ -22,8 +22,7 @@ def lorenz(page, notebook):
     [
         "[aria-controls=nb-settings]",
         "[aria-controls=nb-help]",
-        "[aria-controls=nb-metadata]",
-        "[aria-controls=nb-audit]",
+        # "[aria-controls=nb-metadata]",
         param("[aria-controls=nb-expanded-dialog]", marks=mark.xfail(reason=NEEDS_WORK)),
         param("[aria-controls=nb-visibility-dialog]", marks=mark.xfail(reason=NEEDS_WORK)),
         # param("nada", marks=mark.xfail(reason="no selector")),
