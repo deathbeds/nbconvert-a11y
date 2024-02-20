@@ -124,9 +124,9 @@ table {
     border-spacing: unset;
 }
 
-main>.cell,
-#cells:not([role=table]) .cell,
-#cells:not([role=table])>tbody {
+#cells,
+#cells .cell,
+#cells>tbody {
     display: flex;
     flex-direction: column;
 }
