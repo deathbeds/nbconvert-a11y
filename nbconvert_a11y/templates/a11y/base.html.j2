@@ -33,12 +33,16 @@ the notebook experiennce from browse to edit/focus mode.
 {% block extra_css %}{% endblock %}
 
 {% block body_header %}
+{%- set title = nb.metadata.get("title") -%}
+{%- set description = nb.metadata.get("description") -%}
+{% set describedby = "nb-ct-total nb-cells-label nb-ct-code nb-state nb-ct-loc nb-loc-label
+nb-ct-outputs nb-outputs-label"%}
 
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header>
         <a href="#1" id="TOP">skip to main content</a>
         {{site_navigation | default("")}}
-        {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2"%}{%- endif -%}
+        {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
         <dialog id="nb-metadata">
             <form method="dialog">
@@ -47,7 +51,7 @@ the notebook experiennce from browse to edit/focus mode.
             </form>
         </dialog>
     </header>
-    <main>
+    <main aria-describedby="{{describedby}}">
         {% endblock body_header %}
 
         {% block body_footer scoped %}

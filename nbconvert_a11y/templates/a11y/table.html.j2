@@ -57,7 +57,8 @@ or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
         cell, cell.source,
         cell.outputs,
         cell.cell_type,
-        cell.execution_count)}}</td>
+        cell.metadata,
+        cell.get("execution_count"))}}</td>
 </tr>
 {% endmacro %}
 
@@ -89,7 +90,7 @@ the template provides the structure for new cells when they are added. #}
 {% block template_element %}
 <template>
     <table>
-        {{cell_row(dict(source=""), dict(index=""))}}
+        {{cell_row(dict(source="", metadata={}), dict(index=""))}}
     </table>
 </template>
 {% endblock %}

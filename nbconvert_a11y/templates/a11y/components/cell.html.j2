@@ -69,7 +69,7 @@ that would include talking to the kernel. #}
 </dialog>
 {% endmacro %}
 
-{%- macro cell_output(i, cell, source, outputs, cell_type, execution_count, hidden=False) -%}
+{%- macro cell_output(i, cell, source, outputs, cell_type, metadata, execution_count, hidden=False) -%}
 {% set CODE = cell_type == "code" %}
 {% if CODE %}
 {% if execution_count %}
@@ -77,7 +77,7 @@ that would include talking to the kernel. #}
 {% endif %}
 {# the following span should get its own column in the table #}
 <fieldset
-    class="nb-outputs{% if cell.metadata.get('scrolled')%} nb-scrolled{% endif %}{% if cell.metadata.get('collapsed')%} nb-collapsed{% endif %}"
+    class="nb-outputs{% if metadata.get('scrolled')%} nb-scrolled{% endif %}{% if metadata.get('collapsed')%} nb-collapsed{% endif %}"
     {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
     <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc" {{hide(not
         resources.global_content_filter.include_output_prompt)}}>
@@ -92,9 +92,16 @@ that would include talking to the kernel. #}
     {{cell_display_priority(i, outputs, cell)}}
     {% endif %}
 </fieldset>
-{% else %}
+{%- else %}
+{%- set html = metadata.get("data", {}).get("text/html") %}
+{%- if html  -%}
+{# if there is a data bundle in the metadata then we can use that 
+instead of computing the markup  #}
+{{html}}
+{%- else -%}
 {{ markdown(source) | strip_files_prefix }}
-{% endif %}
+{%- endif -%}
+{%- endif -%}
 {%- endmacro -%}
 
 {% macro cell_loc(i, cell, tag="span") %}
@@ -112,7 +119,7 @@ that would include talking to the kernel. #}
     {{cell_cell_type(loop.index, cell.cell_type, hidden=True)}}
     {{cell_source(loop.index, cell.source, cell.cell_type, cell.execution_count, hidden=cell.cell_type != "code")}}
     {{cell_loc(loop.index, cell)}}
-    {{cell_output(loop.index, cell, cell.source, cell.outputs, cell.cell_type, cell.execution_count)}}
+    {{cell_output(loop.index, cell, cell.source, cell.outputs, cell.cell_type, cell.metadata, cell.execution_count)}}
     {{cell_metadata(loop.index, cell.metadata, hidden=True)}}
 </{{tag}}>
 {% endmacro%}
