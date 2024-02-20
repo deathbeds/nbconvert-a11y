@@ -112,9 +112,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
     ).tag(config=True)
-    include_summary = Bool(
-        True, help="collect notebook properties into a summary"
-    ).tag(config=True)
+    include_summary = Bool(True, help="collect notebook properties into a summary").tag(config=True)
     wcag_priority = Enum(
         ["AAA", "AA", "A"], "AA", help="the default inital wcag priority to start with"
     ).tag(config=True)
@@ -212,14 +210,10 @@ class A11yExporter(PostProcess, HTMLExporter):
     def post_process_html(self, body):
         """A final pass at the exported html to add table of contents, heading links, and other a11y affordances."""
         soup = soupify(body)
-        describe_main(soup)
         heading_links(soup)
         details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
         if details:
-            details.extend(soupify(toc(soup)).body.children)
-            for x in details.select("ul"):
-                x.name = "ol"
-            details.select_one("ol").attrs["aria-labelledby"] = "nb-toc"
+            details.append(toc(soup))
         return soup.prettify(formatter="html5")
 
 
@@ -270,7 +264,7 @@ def highlight(code, lang="python", attrs=None, experimental=True):
     lang = lang or pygments.lexers.get_lexer_by_name(lang or "python")
 
     formatter = pygments.formatters.get_formatter_by_name(
-        "html", debug_token_types=True, title=f"{lang} code", wrapcode=True
+        "html", debug_token_types=False, title=f"{lang} code", wrapcode=True
     )
     try:
         return pygments.highlight(
@@ -292,26 +286,56 @@ def mdtoc(html):
     import io
 
     toc = io.StringIO()
+    level = 0
     for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
 
-            if header.string:
-                id = slugify(header.string)
+            if header.text:
+                id = slugify(header.text)
             else:
                 continue
-
         # there is missing logistics for managely role=heading
         # adding code group semantics will motivate this addition
         level = int(header.name[-1])
-        toc.write("  " * (level - 1) + f"* [{header.string}](#{id})\n")
+        toc.write("  " * (level - 1) + f"* [{header.text}](#{id})\n")
     return toc.getvalue()
 
 
 def toc(html):
     """Create an html table of contents"""
     return get_markdown(mdtoc(html))
+
+
+def toc(html):
+    """Create a table of contents in markdown that will be converted to html"""
+
+    toc = BeautifulSoup(features="lxml")
+    toc.append(el := toc.new_tag("ol"))
+    el.attrs.update({"aria-labelledby": "toc"})
+    last_level = 1
+    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
+        id = header.attrs.get("id")
+        if not id:
+            continue
+        # there is missing logistics for managely role=heading
+        # adding code group semantics will motivate this addition
+        level = int(header.name[-1])
+        if last_level > level:
+            for l in range(level, last_level):
+                last_level = l - 1
+                el = el.parent.parent
+        elif last_level < level:
+            for l in range(last_level, level):
+                last_level = l + 1
+                el.append(li := toc.new_tag("li"))
+                li.append(el := toc.new_tag("ol"))
+        el.append(li := toc.new_tag("li"))
+        li.append(a := toc.new_tag("a"))
+        a.append(header.text)
+        a.attrs.update(href=f"#{id}")
+    return toc
 
 
 def heading_links(html):
@@ -321,12 +345,12 @@ def heading_links(html):
         if not id:
             from slugify import slugify
 
-            if header.string:
-                id = slugify(header.string)
+            if header.text:
+                id = slugify(header.text)
             else:
                 continue
 
-        link = soupify(f"""<a href="#{id}">{header.string}</a>""").body.a
+        link = soupify(f"""<a href="#{id}">{header.text}</a>""").body.a
         header.clear()
         header.append(link)
 
@@ -360,16 +384,6 @@ def count_outputs(nb):
 def count_code_cells(nb):
     """Count total number of code cells"""
     return len([None for x in nb.cells if x["cell_type"] == "code"])
-
-
-def describe_main(soup):
-    """Add REFIDs to aria-describedby"""
-    x = soup.select_one("#toc > details > summary")
-    if x:
-        x.attrs["aria-describedby"] = soup.select_one("main").attrs["aria-describedby"] = (
-            "nb-cells-count-label nb-cells-label nb-code-cells nb-code-cells-label nb-ordered nb-loc nb-loc-label"
-        )
-
 
 def is_ordered(nb) -> str:
     """Measure if the notebook is ordered"""
