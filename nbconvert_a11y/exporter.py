@@ -211,9 +211,12 @@ class A11yExporter(PostProcess, HTMLExporter):
         """A final pass at the exported html to add table of contents, heading links, and other a11y affordances."""
         soup = soupify(body)
         heading_links(soup)
-        details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
-        if details:
-            details.append(toc(soup))
+        if self.include_toc:
+            details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
+            if details:
+                if not details.select_one("ol"):
+                    print('create')
+                    details.append(toc(soup))
         return soup.prettify(formatter="html5")
 
 
@@ -281,33 +284,6 @@ def soupify(body: str) -> BeautifulSoup:
     return BeautifulSoup(body, features="html5lib")
 
 
-def mdtoc(html):
-    """Create a table of contents in markdown that will be converted to html"""
-    import io
-
-    toc = io.StringIO()
-    level = 0
-    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
-        id = header.attrs.get("id")
-        if not id:
-            from slugify import slugify
-
-            if header.text:
-                id = slugify(header.text)
-            else:
-                continue
-        # there is missing logistics for managely role=heading
-        # adding code group semantics will motivate this addition
-        level = int(header.name[-1])
-        toc.write("  " * (level - 1) + f"* [{header.text}](#{id})\n")
-    return toc.getvalue()
-
-
-def toc(html):
-    """Create an html table of contents"""
-    return get_markdown(mdtoc(html))
-
-
 def toc(html):
     """Create a table of contents in markdown that will be converted to html"""
 
@@ -315,7 +291,11 @@ def toc(html):
     toc.append(el := toc.new_tag("ol"))
     el.attrs.update({"aria-labelledby": "toc"})
     last_level = 1
+    headers = set()
     for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
+        if header in headers:
+            continue
+        headers.add(header)
         id = header.attrs.get("id")
         if not id:
             continue
@@ -324,17 +304,18 @@ def toc(html):
         level = int(header.name[-1])
         if last_level > level:
             for l in range(level, last_level):
-                last_level = l - 1
+                last_level -= 1 
                 el = el.parent.parent
         elif last_level < level:
             for l in range(last_level, level):
-                last_level = l + 1
+                last_level += 1
                 el.append(li := toc.new_tag("li"))
                 li.append(el := toc.new_tag("ol"))
         el.append(li := toc.new_tag("li"))
         li.append(a := toc.new_tag("a"))
         a.append(header.text)
         a.attrs.update(href=f"#{id}")
+
     return toc
 
 
@@ -384,6 +365,7 @@ def count_outputs(nb):
 def count_code_cells(nb):
     """Count total number of code cells"""
     return len([None for x in nb.cells if x["cell_type"] == "code"])
+
 
 def is_ordered(nb) -> str:
     """Measure if the notebook is ordered"""
