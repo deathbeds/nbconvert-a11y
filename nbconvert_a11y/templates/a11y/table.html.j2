@@ -9,20 +9,20 @@ cell_form, cell_source, cell_metadata, cell_output with context%}
 {%- set include_outputs = True -%}
 {%- set include_input = True -%}
 {%- if cell.cell_type in ["raw"] -%}
-{%- set include_input = resources.global_content_filter.include_raw and not (
-cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.get("jupyter",
-{}).get("source_hidden", False))-%}
+{%- set include_input = resources.global_content_filter.include_raw and
+not cell.metadata.get("transient",{}).get("remove_source", false) and not cell.metadata.get("jupyter",
+{}).get("source_hidden", False)-%}
 {%- elif cell.cell_type in ["markdown"]-%}
-{%- set include_input = resources.global_content_filter.include_markdown and not (
-cell.metadata.get("transient",{}).get("remove_source", false) or cell.metadata.get("jupyter",
-{}).get("source_hidden", False)) -%}
+{%- set include_input = resources.global_content_filter.include_markdown and
+not cell.metadata.get("transient",{}).get("remove_source", false) and not cell.metadata.get("jupyter",
+{}).get("source_hidden", False) -%}
 {%- elif cell.cell_type in ["code"]-%}
-{%- set include_input = resources.global_content_filter.include_code and not (not
+{%- set include_input = resources.global_content_filter.include_code and
 resources.global_content_filter.include_input
-or cell.metadata.get("jupyter", {}).get("source_hidden", False))
-or cell.metadata.get("transient",{}).get("remove_source", false) -%}
+and not cell.metadata.get("jupyter", {}).get("source_hidden", False)
+and not cell.metadata.get("transient",{}).get("remove_source", false) -%}
 {%- set include_outputs = cell.outputs and resources.global_content_filter.include_output
-or not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
+and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {%- endif -%}
 {%- set slide_type = cell.get("metadata", {}).get("slide_type") -%}
 <tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}"
