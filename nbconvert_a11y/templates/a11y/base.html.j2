@@ -80,7 +80,7 @@ nb-ct-outputs nb-outputs-label"%}
         {% if resources.include_visibility %}{% include "a11y/components/visibility.html.j2"%}{% endif %}
         {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
         {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
-        {{activity_log()}}
+        {{activity_log(id=True)}}
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
     {% if resources.include_upload %}{% block template_element %}{% endblock %}{% endif %}
