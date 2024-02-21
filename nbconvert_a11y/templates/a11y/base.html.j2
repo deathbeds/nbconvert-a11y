@@ -41,7 +41,7 @@ nb-ct-outputs nb-outputs-label"%}
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header>
         <a href="#1" id="TOP">skip to main content</a>
-        {{site_navigation | default("")}}
+        {{resources.header | default("")}}
         {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
         <dialog id="nb-metadata">
@@ -62,6 +62,7 @@ nb-ct-outputs nb-outputs-label"%}
     {# skip to top is needed for long notebooks.
     it is difficult to access for keyboard users. #}
     <footer>
+        {{resources.footer}}
         {% include "a11y/components/nb-toolbar.html.j2" %}
         {# make the individual settings discoverable before all the settings
         when using shift+tab #}
@@ -79,7 +80,6 @@ nb-ct-outputs nb-outputs-label"%}
         {% if resources.include_visibility %}{% include "a11y/components/visibility.html.j2"%}{% endif %}
         {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
         {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
-        {{footer}}
         {{activity_log()}}
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
