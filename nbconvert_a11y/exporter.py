@@ -214,8 +214,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         if self.include_toc:
             details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
             if details:
-                if not details.select_one("ol"):
-                    print('create')
+                if not details.select_one("nav"):
                     details.append(toc(soup))
         return soup.prettify(formatter="html5")
 
@@ -287,9 +286,9 @@ def soupify(body: str) -> BeautifulSoup:
 def toc(html):
     """Create a table of contents in markdown that will be converted to html"""
 
-    toc = BeautifulSoup(features="lxml")
-    toc.append(el := toc.new_tag("ol"))
-    el.attrs.update({"aria-labelledby": "toc"})
+    toc = BeautifulSoup(features="html.parser")
+    toc.append(nav := toc.new_tag("nav"))
+    nav.append(ol := toc.new_tag("ol"))
     last_level = 1
     headers = set()
     for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
@@ -305,13 +304,13 @@ def toc(html):
         if last_level > level:
             for l in range(level, last_level):
                 last_level -= 1 
-                el = el.parent.parent
+                ol = ol.parent.parent
         elif last_level < level:
             for l in range(last_level, level):
                 last_level += 1
-                el.append(li := toc.new_tag("li"))
-                li.append(el := toc.new_tag("ol"))
-        el.append(li := toc.new_tag("li"))
+                ol.append(li := toc.new_tag("li"))
+                li.append(ol := toc.new_tag("ol"))
+        ol.append(li := toc.new_tag("li"))
         li.append(a := toc.new_tag("a"))
         a.append(header.text)
         a.attrs.update(href=f"#{id}")
