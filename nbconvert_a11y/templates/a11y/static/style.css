@@ -102,6 +102,11 @@ the design decisions are focused native elements so that the assistive technolog
     display: none;
 }
 
+/* line height cant change pre elements based on browser presets */
+pre {
+    line-height: unset;
+}
+
 /* this is only needed for the lsit template variant */
 ol#cells {
     margin: unset;
