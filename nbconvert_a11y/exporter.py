@@ -126,7 +126,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
     allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
-    exclude_anchor_links = Bool(True).tag(config=True)
+    exclude_anchor_links = Bool(False).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
