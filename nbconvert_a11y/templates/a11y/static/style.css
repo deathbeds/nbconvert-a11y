@@ -177,9 +177,18 @@ textarea[name=source] {
     min-width: 0;
 }
 
-.nb-outputs,
-.nb-source {
+td.nb-outputs,
+td.nb-source {
     overflow-x: auto;
+}
+
+.no-overflow td.nb-source {
+    overflow-x: visible;
+}
+
+.no-overflow td.nb-outputs {
+    min-width: 100%;
+    width: max-content;
 }
 
 #nb-settings li::marker,
@@ -208,6 +217,7 @@ textarea[name=source] {
     box-sizing: border-box;
     width: 100%;
     resize: vertical;
+    white-space: pre;
 }
 
 
@@ -234,7 +244,7 @@ details.log:not([open])+table,
 
 .nb-outputs.nb-scrolled {
     max-height: var(--nb-scrolled-height);
-    overflow: auto;
+    overflow-y: auto;
 }
 
 .nb-outputs.nb-collapsed {

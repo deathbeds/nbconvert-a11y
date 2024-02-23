@@ -197,6 +197,11 @@ document.forms.visibility['visually-hide'].addEventListener("change",
         document.querySelector("main").classList.toggle("visually-hide");
         activityLog(`${event.target.checked ? "hiding" : "showing"} main content`);
     });
+document.forms.settings['scroll-overflow'].addEventListener("change",
+    (x) => {
+        document.querySelector("main").classList.toggle("no-overflow");
+        // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
+    });
 
 setStyle("initialize saved settings.")
 // async function runSource(target) {

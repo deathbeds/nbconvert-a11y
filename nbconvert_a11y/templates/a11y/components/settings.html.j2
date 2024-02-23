@@ -31,6 +31,8 @@ settings provides multiple screen reader navigation techniques when the dialog i
                         region presentation".split(), disabled="grid
                         treegrid
                         tree".split())}}</li>
+                    {# screen overflow exists for digital magnifier users to follow long horizontal lines of text. #}
+                    <li>{{checkbox("scroll overflow", True)}}</li>
                     {% set priority = {"Triple A": "AAA","Double A": "AA", "Single A": "A"}%}
                     <li>{{select("accessibility priority", priority, resources.wcag_priority)}}</li>
                     <li>{{checkbox("accesskey navigation", True)}}</li>
