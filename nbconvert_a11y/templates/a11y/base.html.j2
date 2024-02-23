@@ -41,7 +41,11 @@ nb-ct-outputs nb-outputs-label"%}
 
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header>
-        <a href="#1" id="TOP">skip to main content</a>
+        <a href="#1" id="TOP">skip to main content</a><br/>
+        {% if resources.include_settings %}
+        <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
+        {% endif %}
+
         {{resources.header | default("")}}
         {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
@@ -67,9 +71,6 @@ nb-ct-outputs nb-outputs-label"%}
         {% include "a11y/components/nb-toolbar.html.j2" %}
         {# make the individual settings discoverable before all the settings
         when using shift+tab #}
-        {% if resources.include_settings %}
-        <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
-        {% endif %}
         {% if resources.include_visibility %}<button aria-controls="nb-visibility-dialog" onclick="openDialog()"
             accesskey="-">show/hide</button>
         {% endif %}
