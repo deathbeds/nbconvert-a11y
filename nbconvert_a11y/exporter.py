@@ -185,7 +185,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["include_help"] = self.include_help
         resources["include_toc"] = self.include_toc
         resources["include_summary"] = self.include_summary
-        resources["include_visibility"] = self.include_upload
+        resources["include_visibility"] = self.include_visibility
         resources["include_upload"] = self.include_upload
         resources["wcag_priority"] = self.wcag_priority
         resources["accesskey_navigation"] = self.accesskey_navigation
