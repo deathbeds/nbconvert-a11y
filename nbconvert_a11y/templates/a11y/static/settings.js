@@ -199,9 +199,9 @@ document.forms.visibility['visually-hide'].addEventListener("change",
         document.querySelector("main").classList.toggle("visually-hide");
         activityLog(`${event.target.checked ? "hiding" : "showing"} main content`);
     });
-document.forms.settings['scroll-overflow'].addEventListener("change",
+document.forms.settings['horizontal-scrolling'].addEventListener("change",
     (x) => {
-        document.querySelector("main").classList.toggle("no-overflow");
+        BODY.classList.toggle("horiz-overflow", event.target.checked);
         // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
     });
 

@@ -32,7 +32,7 @@ settings provides multiple screen reader navigation techniques when the dialog i
                         treegrid
                         tree".split())}}</li>
                     {# screen overflow exists for digital magnifier users to follow long horizontal lines of text. #}
-                    <li>{{checkbox("scroll overflow", True)}}</li>
+                    <li>{{checkbox("horizontal scrolling", False)}}</li>
                     {% set priority = {"Triple A": "AAA","Double A": "AA", "Single A": "A"}%}
                     <li>{{select("accessibility priority", priority, resources.wcag_priority)}}</li>
                     <li>{{checkbox("accesskey navigation", True)}}</li>
