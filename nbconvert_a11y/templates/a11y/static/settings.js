@@ -34,10 +34,12 @@ const BODY = document.querySelector("body"), SELECTORS = {
 
 function toggleColorScheme() {
     let value = document.forms.settings.elements["color-scheme"].value;
-    let opposite = value == "dark" ? "light" : "dark";
-    document.getElementById(`nb-${value}-theme`).removeAttribute("media", "screen");
-    document.getElementById(`nb-${opposite}-theme`).setAttribute("media", "not screen");
+    let DARK = value == "dark";
+    let opposite = DARK ? "light" : "dark";
+    document.getElementById(`nb-${value}-highlight`).removeAttribute("media", "screen");
+    document.getElementById(`nb-${opposite}-highlight`).setAttribute("media", "not screen");
     document.querySelector(`head > meta[name="color-scheme"]`).setAttribute("content", value);
+    BODY.classList.toggle("dark", DARK);
     activityLog(`${value} mode activated`)
 }
 function toggleRole() {
@@ -152,7 +154,7 @@ function setWCAG() {
     );
 }
 document.forms.settings.elements["accessibility-priority"].addEventListener("change", setWCAG);
-    function toggleActive() {
+function toggleActive() {
     if (document.forms.notebook.elements.edit.checked) {
         document.querySelectorAll("tr.cell>td>details>summary[inert]").forEach(
             x => x.removeAttribute("inert")
@@ -202,6 +204,15 @@ document.forms.settings['scroll-overflow'].addEventListener("change",
         document.querySelector("main").classList.toggle("no-overflow");
         // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
     });
+
+
+function fullScreen() {
+    if (!document.fullscreenElement) {
+        document.querySelector("main").requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
 
 setStyle("initialize saved settings.")
 // async function runSource(target) {
