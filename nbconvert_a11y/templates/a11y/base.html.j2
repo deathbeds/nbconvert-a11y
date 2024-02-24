@@ -25,7 +25,7 @@ the notebook experiennce from browse to edit/focus mode.
     {% include "a11y/static/style.css" %}
 </style>
 {% for theme in ["light", "dark"] %}
-<style type="text/css" id="nb-{{theme}}-theme" media="{% if loop.index - 1%}not  {% endif %}screen">
+<style type="text/css" id="nb-{{theme}}-highlight" media="{% if loop.index - 1%}not  {% endif %}screen">
     {% include "a11y/static/theme/{}.css" .format(resources.code_theme.format(theme)) %}
 </style>
 {% endfor %}
@@ -45,6 +45,7 @@ nb-ct-outputs nb-outputs-label"%}
         {% if resources.include_settings %}
         <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
         {% endif %}
+        <button onclick="fullScreen()">fullscreen</button>
 
         {{resources.header | default("")}}
         {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
