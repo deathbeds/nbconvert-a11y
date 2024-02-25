@@ -194,14 +194,26 @@ function openDialogs() {
     );
     event.target.focus();
 }
+
 document.forms.visibility['visually-hide'].addEventListener("change",
     (x) => {
         document.querySelector("main").classList.toggle("visually-hide");
         activityLog(`${event.target.checked ? "hiding" : "showing"} main content`);
     });
+
 document.forms.settings['horizontal-scrolling'].addEventListener("change",
     (x) => {
         BODY.classList.toggle("horiz-overflow", event.target.checked);
+        if (!event.target.checked) {
+            document.querySelectorAll("textarea").forEach(
+                (x) => {
+                    x.style.width = "";
+                    x.style.height = "";
+                    // rerender after resetting width
+                    textareaMaxHeight(x);
+                }
+            )
+        };
         // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
     });
 
@@ -212,6 +224,53 @@ function fullScreen() {
     } else {
         document.exitFullscreen();
     }
+}
+
+// resizing hits the width before the height.
+// width resizes trigger height resizes and height resizes need to be computed from scratch.
+// we handle that logic with boolean flags when sets the width/height.
+function setTextareaWidth(entry, set = null) {
+    if (set === null) { return }
+    if (set) {
+        let props = getComputedStyle(entry.target);
+        let width = entry.target.scrollWidth,
+            left = Number(props.borderLeftWidth.slice(0, -2)),
+            right = Number(props.borderRightWidth.slice(0, -2));
+        el.style.width = `${width + left + right}px`
+        setTextareaHeight(entry, true);
+    }
+}
+
+function setTextareaHeight(entry, reset = null) {
+    if (reset === null) { return }
+    let props = getComputedStyle(entry.target);
+    if (reset) {
+        entry.target.style.height = ""
+        return setTextareaHeight(entry, false)
+    } else {
+        let height = entry.target.scrollHeight;
+        let top = Number(props.borderTopWidth.slice(0, -2));
+        let bottom = Number(props.borderBottomWidth.slice(0, -2));
+        entry.target.style.height = `${height + top + bottom}px`;
+    }
+
+}
+let observer = new ResizeObserver(
+    (entries) => {
+        entries.forEach((entry) => {
+            (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)(entry, true);
+        });
+    }
+);
+
+document.querySelectorAll("textarea").forEach(
+    (x) => {
+        observer.observe(x);
+    }
+);
+
+if (!document.fullscreenEnabled) {
+    document.getElementById("nb-fullscreen").setAttribute("hidden", "");
 }
 
 setStyle("initialize saved settings.")
