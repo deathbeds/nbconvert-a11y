@@ -27,8 +27,7 @@ and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {%- set slide_type = cell.get("metadata", {}).get("slide_type") -%}
 <tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}"
     aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type" data-loc="{{cell.source.splitlines().__len__()}}"
-    {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}" {% if slide_type %}
-    data-slide_type="{{slide_type}}" {% endif %}>
+    {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}" data-slide_type={% if slide_type %}"{{slide_type}}" {% endif %}>
     <th role="{{resources.table_pattern.rowheader}}" class="nb-anchor" scope="row">{{cell_anchor(index, cell.cell_type,
         cell.execution_count, cell.outputs)}}</td>
     <td role="{{resources.table_pattern.cell}}" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or
