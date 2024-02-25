@@ -125,12 +125,14 @@ the design decisions are focused native elements so that the assistive technolog
 }
 
 /* line height cant change pre elements based on browser presets */
-pre {
+pre,
+textarea {
     line-height: unset;
     white-space: pre-wrap;
 }
 
-.horiz-overflow pre {
+.horiz-overflow pre,
+.horiz-overflow textarea {
     white-space: pre;
 }
 
@@ -203,10 +205,9 @@ td.nb-source {
     overflow-x: auto;
 }
 
-.horiz-overflow td.nb-outputs, 
+.horiz-overflow td.nb-outputs,
 .horiz-overflow header,
-.horiz-overflow footer
-{
+.horiz-overflow footer {
     width: max-content;
 }
 
@@ -244,7 +245,6 @@ textarea[name=source] {
     box-sizing: border-box;
     width: 100%;
     resize: vertical;
-    white-space: pre;
 }
 
 
