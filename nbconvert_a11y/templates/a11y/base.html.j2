@@ -13,7 +13,8 @@ the notebook experiennce from browse to edit/focus mode.
 {% set title = nb.metadata.get('title', resources['metadata']['name']) | escape_html_keep_quotes %}
 
 {%- block html_head_js -%}
-{% if nb.metadata.description %}<meta name="description" content="{{nb.metadata.description}}">{% endif %}
+{% if nb.metadata.description %}
+<meta name="description" content="{{nb.metadata.description}}">{% endif %}
 <meta name="color-scheme" content="light">
 {# sa11y needs to be loaded before requirejs #}
 {% if resources.include_sa11y %}{% include "a11y/components/sa11y.html.j2"%}{% endif %}
@@ -41,11 +42,11 @@ nb-ct-outputs nb-outputs-label"%}
 
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header>
-        <a href="#1" id="TOP">skip to main content</a><br/>
+        <a href="#1" id="TOP">skip to main content</a><br />
         {% if resources.include_settings %}
         <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
         {% endif %}
-        <button onclick="fullScreen()">fullscreen</button>
+        <button onclick="fullScreen()" id="nb-fullscreen">fullscreen</button>
 
         {{resources.header | default("")}}
         {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
