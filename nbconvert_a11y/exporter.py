@@ -122,7 +122,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_cell_index = Bool(
         True, help="show the ordinal cell index, typically this is ignored from notebooks."
     ).tag(config=True)
-    include_visibility = Bool(False, help="include visibility toggle").tag(config=True)
+    include_visibility = Bool(True, help="include visibility toggle").tag(config=True)
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
     allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
