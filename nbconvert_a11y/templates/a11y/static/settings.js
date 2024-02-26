@@ -32,8 +32,8 @@ const BODY = document.querySelector("body"), SELECTORS = {
     }
 };
 
-function toggleColorScheme() {
-    let value = document.forms.settings.elements["color-scheme"].value;
+function toggleColorScheme(value = null) {
+    value = value === null ? document.forms.settings.elements["color-scheme"].value : value;
     let DARK = value == "dark";
     let opposite = DARK ? "light" : "dark";
     document.getElementById(`nb-${value}-highlight`).removeAttribute("media", "screen");
@@ -209,8 +209,6 @@ document.forms.settings['horizontal-scrolling'].addEventListener("change",
                 (x) => {
                     x.style.width = "";
                     x.style.height = "";
-                    // rerender after resetting width
-                    textareaMaxHeight(x);
                 }
             )
         };
@@ -232,11 +230,12 @@ function fullScreen() {
 function setTextareaWidth(entry, set = null) {
     if (set === null) { return }
     if (set) {
+        entry.target.style.width = "";
         let props = getComputedStyle(entry.target);
         let width = entry.target.scrollWidth,
             left = Number(props.borderLeftWidth.slice(0, -2)),
             right = Number(props.borderRightWidth.slice(0, -2));
-        entry.target.style.width = `${width + left + right}px`
+        entry.target.style.width = `${Math.ceil(width) + Math.ceil(left) + Math.ceil(right) + 1}px`
         setTextareaHeight(entry, true);
     }
 }
@@ -251,7 +250,7 @@ function setTextareaHeight(entry, reset = null) {
         let height = entry.target.scrollHeight;
         let top = Number(props.borderTopWidth.slice(0, -2));
         let bottom = Number(props.borderBottomWidth.slice(0, -2));
-        entry.target.style.height = `${height + top + bottom}px`;
+        entry.target.style.height = `${Math.ceil(height) + Math.ceil(top) + Math.ceil(bottom) + 1}px`;
     }
 
 }
