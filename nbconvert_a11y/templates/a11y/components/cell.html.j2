@@ -36,10 +36,10 @@ that would include talking to the kernel. #}
 {% endmacro %}
 
 {% macro cell_execution_count(i, execution_count, hidden=False) %}
-<label id="cell-{{i}}-source-label" class="nb-execution_count" {{hide(hidden)}}>
-    <span>{{resources.prompt_in}}</span>
+<label class="nb-execution_count" {{hide(hidden)}}>
+    <span id="cell-{{i}}-in-label">{{resources.prompt_in}}</span>
     <span aria-hidden="true">{{resources.prompt_left}}</span>
-    <span>{{execution_count}}</span>
+    <span id="cell-{{i}}-exec-label">{{execution_count}}</span>
     <span aria-hidden="true">{{resources.prompt_right}}</span>
 </label>
 {% endmacro %}
@@ -47,9 +47,10 @@ that would include talking to the kernel. #}
 
 {% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
 <textarea class="nb-source" form="cell-{{i}}" id="cell-{{i}}-source" name="source"
-    rows="{{source.splitlines().__len__()}}" aria-labelledby="cell-{{i}}-source-label nb-source-label"
+    rows="{{source.splitlines().__len__()}}" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label nb-source-label"
     readonly>{{source}}</textarea>
-<div role="group" aria-labelledby="nb-source-label" aria-roledescription="highlighted">
+{# should say something like highlight source #}
+<div role="group" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label" aria-roledescription="highlighted">
     {{highlight(source, cell_type)}}
 </div>
 {% endmacro %}
@@ -92,9 +93,9 @@ that would include talking to the kernel. #}
 </fieldset>
 {%- else %}
 {%- set html = metadata.get("data", {}).get("text/html") %}
-{%- if html  -%}
-{# if there is a data bundle in the metadata then we can use that 
-instead of computing the markup  #}
+{%- if html -%}
+{# if there is a data bundle in the metadata then we can use that
+instead of computing the markup #}
 {{html}}
 {%- else -%}
 {{ markdown(source) | strip_files_prefix }}
