@@ -1,14 +1,16 @@
 import pandas, bs4, functools
-from .outputs import repr_semantic
+from .outputs import get_type, repr_semantic, repr_semantic_update
+
+
+def load_ipython_extension(shell):
+    repr_semantic_update()
 
 
 def get_caption(df):
     dl = new("dl", role="presentation")
     dl.append(new("dt", "rows")), dl.append(new("dd", str(len(df))))
     dl.append(new("dt", "columns")), dl.append(new("dd", str(len(df.columns))))
-    dl.append(new("dt", "indexes:")), dl.append(
-        new("dd", indexes := new("dl", role="presentation"))
-    )
+    dl.append(new("dt", "indexes")), dl.append(new("dd", indexes := new("dl", role="presentation")))
     indexes.append(new("dt", "rows")), indexes.append(new("dd", str(df.index.nlevels)))
     indexes.append(new("dt", "columns")), indexes.append(new("dd", str(df.columns.nlevels)))
     return dl
@@ -39,6 +41,8 @@ def get_table(df, caption=None, ARIA=True):
             "table",
             colcount=row_major_at_cols(df) if ARIA or WIDE else None,
             rowcount=row_major_at_rows(df) if ARIA or LONG else None,
+            itemscope=None,
+            itemtype=get_type(df),
         )
     )
     table.append(cap := new("caption", caption))
@@ -58,7 +62,10 @@ def get_thead(df, table, col_ranges, WIDE=False, ARIA=False, LONG=False):
                 for row_level, row_name in enumerate(df.index.names):
                     tr.append(
                         th := theading(
-                            str(row_name) or f"index {row_level}",
+                            str(
+                                row_name
+                                or ("index" if len(df.index) == 1 else f"index {row_level}")
+                            ),
                             scope="col",
                             rowspan=df.columns.nlevels if df.columns.nlevels > 1 else None,
                             colindex=row_level + 1 if ARIA else None,
@@ -67,14 +74,14 @@ def get_thead(df, table, col_ranges, WIDE=False, ARIA=False, LONG=False):
         if COLS:
             tr.append(
                 theading(
-                    str(col_name) or f"level {col_level}",
+                    str(col_name or ("column" if len(df.index) == 1 else f"index {col_level}")),
                     scope="row",
                     colindex=df.index.nlevels + 1 if ARIA else None,
                 )
             )
 
         for col_part, col_range in enumerate(col_ranges):
-            if col_part:
+            if col_part and col_range:
                 tr.append(
                     theading(
                         HIDDEN,
@@ -104,7 +111,7 @@ def get_tbody(df, table, col_ranges, row_ranges, WIDE=False, ARIA=False, LONG=Fa
     row_center = row_ranges[1].start - row_ranges[0].stop
     col_center = col_ranges[1].start - col_ranges[0].stop
     for row_part, row_range in enumerate(row_ranges):
-        if row_part:
+        if row_part and row_range:
             table.append(
                 tr := trow(
                     rowindex=row_index + 2 + df.columns.nlevels, **{"aria-rowspan": row_center}
@@ -115,7 +122,7 @@ def get_tbody(df, table, col_ranges, row_ranges, WIDE=False, ARIA=False, LONG=Fa
             if ROWS and COLS:
                 tr.append(tdata(EMPTY, colindex=row_level + 2))
             for col_part, col_range in enumerate(col_ranges):
-                if col_part:
+                if col_part and col_range:
                     tr.append(
                         tdata(
                             HIDDEN,
@@ -142,7 +149,7 @@ def get_tbody(df, table, col_ranges, row_ranges, WIDE=False, ARIA=False, LONG=Fa
             if ROWS and COLS:
                 tr.append(tdata(EMPTY, colindex=row_level + 2))
             for col_part, col_range in enumerate(col_ranges):
-                if col_part:
+                if col_part and col_range:
                     tr.append(
                         tdata(
                             HIDDEN,

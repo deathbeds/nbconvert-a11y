@@ -5,7 +5,7 @@ prettifying python combines content and style, but with html
 we can seperate these concerns. */
 
 
-[itemscope] {
+[itemscope]:not(table) {
     font-family: monospace;
 }
 
@@ -71,14 +71,26 @@ ul[itemtype$=set] li {
     }
 }
 
-dl[itemtype] {
+.jp-OutputArea-output table caption,
+table caption {
 
+    dl,
     dd,
     dt {
-        display: inline;
-        float: unset;
-
+        padding-left: .5em;
+        padding-right: .5em;
     }
+
+}
+
+
+.jp-OutputArea-output dd,
+.jp-OutputArea-output dt {
+    float: unset;
+    display: unset;
+}
+
+dl[itemtype] {
 
     dt:first-child::before {
         content: "{";
