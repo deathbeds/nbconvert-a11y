@@ -112,9 +112,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
     ).tag(config=True)
-    include_summary = Bool(
-        True, help="collect notebook properties into a summary"
-    ).tag(config=True)
+    include_summary = Bool(True, help="collect notebook properties into a summary").tag(config=True)
     wcag_priority = Enum(
         ["AAA", "AA", "A"], "AA", help="the default inital wcag priority to start with"
     ).tag(config=True)
@@ -124,11 +122,11 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_cell_index = Bool(
         True, help="show the ordinal cell index, typically this is ignored from notebooks."
     ).tag(config=True)
-    include_visibility = Bool(False, help="include visibility toggle").tag(config=True)
+    include_visibility = Bool(True, help="include visibility toggle").tag(config=True)
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
     allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
-    exclude_anchor_links = Bool(True).tag(config=True)
+    exclude_anchor_links = Bool(False).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
@@ -187,7 +185,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["include_help"] = self.include_help
         resources["include_toc"] = self.include_toc
         resources["include_summary"] = self.include_summary
-        resources["include_visibility"] = self.include_upload
+        resources["include_visibility"] = self.include_visibility
         resources["include_upload"] = self.include_upload
         resources["wcag_priority"] = self.wcag_priority
         resources["accesskey_navigation"] = self.accesskey_navigation
@@ -212,14 +210,12 @@ class A11yExporter(PostProcess, HTMLExporter):
     def post_process_html(self, body):
         """A final pass at the exported html to add table of contents, heading links, and other a11y affordances."""
         soup = soupify(body)
-        describe_main(soup)
         heading_links(soup)
-        details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
-        if details:
-            details.extend(soupify(toc(soup)).body.children)
-            for x in details.select("ul"):
-                x.name = "ol"
-            details.select_one("ol").attrs["aria-labelledby"] = "nb-toc"
+        if self.include_toc:
+            details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
+            if details:
+                if not details.select_one("nav"):
+                    details.append(toc(soup))
         return soup.prettify(formatter="html5")
 
 
@@ -270,7 +266,7 @@ def highlight(code, lang="python", attrs=None, experimental=True):
     lang = lang or pygments.lexers.get_lexer_by_name(lang or "python")
 
     formatter = pygments.formatters.get_formatter_by_name(
-        "html", debug_token_types=True, title=f"{lang} code", wrapcode=True
+        "html", debug_token_types=False, title=f"{lang} code", wrapcode=True
     )
     try:
         return pygments.highlight(
@@ -287,31 +283,39 @@ def soupify(body: str) -> BeautifulSoup:
     return BeautifulSoup(body, features="html5lib")
 
 
-def mdtoc(html):
+def toc(html):
     """Create a table of contents in markdown that will be converted to html"""
-    import io
 
-    toc = io.StringIO()
+    toc = BeautifulSoup(features="html.parser")
+    toc.append(nav := toc.new_tag("nav"))
+    nav.append(ol := toc.new_tag("ol"))
+    last_level = 1
+    headers = set()
     for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
+        if header in headers:
+            continue
+        headers.add(header)
         id = header.attrs.get("id")
         if not id:
-            from slugify import slugify
-
-            if header.string:
-                id = slugify(header.string)
-            else:
-                continue
-
+            continue
         # there is missing logistics for managely role=heading
         # adding code group semantics will motivate this addition
         level = int(header.name[-1])
-        toc.write("  " * (level - 1) + f"* [{header.string}](#{id})\n")
-    return toc.getvalue()
+        if last_level > level:
+            for l in range(level, last_level):
+                last_level -= 1 
+                ol = ol.parent.parent
+        elif last_level < level:
+            for l in range(last_level, level):
+                last_level += 1
+                ol.append(li := toc.new_tag("li"))
+                li.append(ol := toc.new_tag("ol"))
+        ol.append(li := toc.new_tag("li"))
+        li.append(a := toc.new_tag("a"))
+        a.append(header.text)
+        a.attrs.update(href=f"#{id}")
 
-
-def toc(html):
-    """Create an html table of contents"""
-    return get_markdown(mdtoc(html))
+    return toc
 
 
 def heading_links(html):
@@ -321,12 +325,12 @@ def heading_links(html):
         if not id:
             from slugify import slugify
 
-            if header.string:
-                id = slugify(header.string)
+            if header.text:
+                id = slugify(header.text)
             else:
                 continue
 
-        link = soupify(f"""<a href="#{id}">{header.string}</a>""").body.a
+        link = soupify(f"""<a href="#{id}">{header.text}</a>""").body.a
         header.clear()
         header.append(link)
 
@@ -360,15 +364,6 @@ def count_outputs(nb):
 def count_code_cells(nb):
     """Count total number of code cells"""
     return len([None for x in nb.cells if x["cell_type"] == "code"])
-
-
-def describe_main(soup):
-    """Add REFIDs to aria-describedby"""
-    x = soup.select_one("#toc > details > summary")
-    if x:
-        x.attrs["aria-describedby"] = soup.select_one("main").attrs["aria-describedby"] = (
-            "nb-cells-count-label nb-cells-label nb-code-cells nb-code-cells-label nb-ordered nb-loc nb-loc-label"
-        )
 
 
 def is_ordered(nb) -> str:

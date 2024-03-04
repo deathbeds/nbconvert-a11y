@@ -32,12 +32,14 @@ const BODY = document.querySelector("body"), SELECTORS = {
     }
 };
 
-function toggleColorScheme() {
-    let value = document.forms.settings.elements["color-scheme"].value;
-    let opposite = value == "dark" ? "light" : "dark";
-    document.getElementById(`nb-${value}-theme`).removeAttribute("media", "screen");
-    document.getElementById(`nb-${opposite}-theme`).setAttribute("media", "not screen");
+function toggleColorScheme(value = null) {
+    value = value === null ? document.forms.settings.elements["color-scheme"].value : value;
+    let DARK = value == "dark";
+    let opposite = DARK ? "light" : "dark";
+    document.getElementById(`nb-${value}-highlight`).removeAttribute("media", "screen");
+    document.getElementById(`nb-${opposite}-highlight`).setAttribute("media", "not screen");
     document.querySelector(`head > meta[name="color-scheme"]`).setAttribute("content", value);
+    BODY.classList.toggle("dark", DARK);
     activityLog(`${value} mode activated`)
 }
 function toggleRole() {
@@ -152,7 +154,7 @@ function setWCAG() {
     );
 }
 document.forms.settings.elements["accessibility-priority"].addEventListener("change", setWCAG);
-    function toggleActive() {
+function toggleActive() {
     if (document.forms.notebook.elements.edit.checked) {
         document.querySelectorAll("tr.cell>td>details>summary[inert]").forEach(
             x => x.removeAttribute("inert")
@@ -192,11 +194,83 @@ function openDialogs() {
     );
     event.target.focus();
 }
+
 document.forms.visibility['visually-hide'].addEventListener("change",
     (x) => {
         document.querySelector("main").classList.toggle("visually-hide");
         activityLog(`${event.target.checked ? "hiding" : "showing"} main content`);
     });
+
+document.forms.settings['horizontal-scrolling'].addEventListener("change",
+    (x) => {
+        BODY.classList.toggle("horiz-overflow", event.target.checked);
+        if (!event.target.checked) {
+            document.querySelectorAll("textarea").forEach(
+                (x) => {
+                    x.style.width = "";
+                    x.style.height = "";
+                }
+            )
+        };
+        // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
+    });
+
+
+function fullScreen() {
+    if (!document.fullscreenElement) {
+        document.querySelector("main").requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// resizing hits the width before the height.
+// width resizes trigger height resizes and height resizes need to be computed from scratch.
+// we handle that logic with boolean flags when sets the width/height.
+function setTextareaWidth(entry, set = null) {
+    if (set === null) { return }
+    if (set) {
+        entry.target.style.width = "";
+        let props = getComputedStyle(entry.target);
+        let width = entry.target.scrollWidth,
+            left = Number(props.borderLeftWidth.slice(0, -2)),
+            right = Number(props.borderRightWidth.slice(0, -2));
+        entry.target.style.width = `${Math.ceil(width) + Math.ceil(left) + Math.ceil(right) + 1}px`
+        setTextareaHeight(entry, true);
+    }
+}
+
+function setTextareaHeight(entry, reset = null) {
+    if (reset === null) { return }
+    let props = getComputedStyle(entry.target);
+    if (reset) {
+        entry.target.style.height = ""
+        return setTextareaHeight(entry, false)
+    } else {
+        let height = entry.target.scrollHeight;
+        let top = Number(props.borderTopWidth.slice(0, -2));
+        let bottom = Number(props.borderBottomWidth.slice(0, -2));
+        entry.target.style.height = `${Math.ceil(height) + Math.ceil(top) + Math.ceil(bottom) + 1}px`;
+    }
+
+}
+let observer = new ResizeObserver(
+    (entries) => {
+        entries.forEach((entry) => {
+            (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)(entry, true);
+        });
+    }
+);
+
+document.querySelectorAll("textarea").forEach(
+    (x) => {
+        observer.observe(x);
+    }
+);
+
+if (!document.fullscreenEnabled) {
+    document.getElementById("nb-fullscreen").setAttribute("hidden", "");
+}
 
 setStyle("initialize saved settings.")
 // async function runSource(target) {

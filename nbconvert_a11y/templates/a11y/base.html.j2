@@ -13,6 +13,8 @@ the notebook experiennce from browse to edit/focus mode.
 {% set title = nb.metadata.get('title', resources['metadata']['name']) | escape_html_keep_quotes %}
 
 {%- block html_head_js -%}
+{% if nb.metadata.description %}
+<meta name="description" content="{{nb.metadata.description}}">{% endif %}
 <meta name="color-scheme" content="light">
 {# sa11y needs to be loaded before requirejs #}
 {% if resources.include_sa11y %}{% include "a11y/components/sa11y.html.j2"%}{% endif %}
@@ -24,7 +26,7 @@ the notebook experiennce from browse to edit/focus mode.
     {% include "a11y/static/style.css" %}
 </style>
 {% for theme in ["light", "dark"] %}
-<style type="text/css" id="nb-{{theme}}-theme" media="{% if loop.index - 1%}not  {% endif %}screen">
+<style type="text/css" id="nb-{{theme}}-highlight" media="{% if loop.index - 1%}not  {% endif %}screen">
     {% include "a11y/static/theme/{}.css" .format(resources.code_theme.format(theme)) %}
 </style>
 {% endfor %}
@@ -33,12 +35,21 @@ the notebook experiennce from browse to edit/focus mode.
 {% block extra_css %}{% endblock %}
 
 {% block body_header %}
+{%- set title = nb.metadata.get("title") -%}
+{%- set description = nb.metadata.get("description") -%}
+{% set describedby = "nb-ct-total nb-cells-label nb-ct-code nb-state nb-ct-loc nb-loc-label
+nb-ct-outputs nb-outputs-label"%}
 
 <body class="wcag-{{resources.wcag_priority.lower()}}">
     <header>
-        <a href="#1" id="TOP">skip to main content</a>
-        {{site_navigation | default("")}}
-        {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2"%}{%- endif -%}
+        <a href="#1" id="TOP">skip to main content</a><br />
+        {% if resources.include_settings %}
+        <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
+        {% endif %}
+        <button onclick="fullScreen()" id="nb-fullscreen">fullscreen</button>
+
+        {{resources.header | default("")}}
+        {%- if resources.include_summary -%}{% include "a11y/components/nb-summary.html.j2" %}{%- endif -%}
         {%- if resources.include_toc -%}{% include "a11y/components/toc.html.j2" %}{%- endif -%}
         <dialog id="nb-metadata">
             <form method="dialog">
@@ -58,12 +69,10 @@ the notebook experiennce from browse to edit/focus mode.
     {# skip to top is needed for long notebooks.
     it is difficult to access for keyboard users. #}
     <footer>
+        {{resources.footer}}
         {% include "a11y/components/nb-toolbar.html.j2" %}
         {# make the individual settings discoverable before all the settings
         when using shift+tab #}
-        {% if resources.include_settings %}
-        <button onclick="openDialog()" aria-controls="nb-settings" accesskey=",">settings</button>
-        {% endif %}
         {% if resources.include_visibility %}<button aria-controls="nb-visibility-dialog" onclick="openDialog()"
             accesskey="-">show/hide</button>
         {% endif %}
@@ -75,8 +84,7 @@ the notebook experiennce from browse to edit/focus mode.
         {% if resources.include_visibility %}{% include "a11y/components/visibility.html.j2"%}{% endif %}
         {% if resources.include_help %}{% include "a11y/components/help.html.j2" %}{% endif %}
         {% if resources.include_axe %}{% include "a11y/components/audit.html.j2" %}{% endif %}
-        {{footer}}
-        {{activity_log()}}
+        {{activity_log(id=True)}}
         <a href="#TOP" accesskey="0">skip to top</a>
     </footer>
     {% if resources.include_upload %}{% block template_element %}{% endblock %}{% endif %}

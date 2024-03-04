@@ -2,19 +2,17 @@
 {% from "a11y/components/displays.html.j2" import cell_display_priority with context %}
 
 {% macro cell_anchor(i, cell_type, execution_count=None, outputs=None, hidden=False)%}
-{% if not resources.exclude_anchors_links %}
 <a class="nb-anchor{% if resources.hide_anchor_links%} visually-hidden{% endif %}" href="#{{i}}" id="{{i}}"
     aria-labelledby="nb-cell-label {{i}}" {% if resources.accesskey_navigation and isinstance(i, int) and (i < 10)
     %}accesskey="{{i}}" {% endif %} aria-describedby="nb-{{cell_type}}-label nb-cell-label {% if cell_type  != "
     markdown".strip() %}cell-{{i}}-loc nb-loc-label{% endif %}{% if cell_type==" code" .strip() and execution_count %}
-    cell-{{i}}-outputs-len{% endif %}" {{hide(hidden)}}>{{i}}</a>
-{% endif %}
+    cell-{{i}}-outputs-len{% endif %}" {{hide(hidden or resources.exclude_anchor_links)}}>{{i}}</a>
 {% endmacro %}
 
 {% macro cell_form(i, cell_type, hidden=True) %}
 {# the cell form acts a formal reference for each cell. as a form, each cell can handle a submission process
 that would include talking to the kernel. #}
-<form class="nb-toolbar" id="cell-{{i}}" name="cell-{{i}}" aria-labelledby="cell-{{i}}-source-label" {{hide(hidden)}}>
+<form class="nb-toolbar" id="cell-{{i}}" name="cell-{{i}}" aria-labelledby="cell-{{i}}-exec-label" {{hide(hidden)}}>
     <fieldset>
         <legend>actions</legend>
         <button type="submit">Run Cell</button>
@@ -38,10 +36,10 @@ that would include talking to the kernel. #}
 {% endmacro %}
 
 {% macro cell_execution_count(i, execution_count, hidden=False) %}
-<label id="cell-{{i}}-source-label" class="nb-execution_count" {{hide(hidden)}}>
-    <span>{{resources.prompt_in}}</span>
+<label class="nb-execution_count" {{hide(hidden)}}>
+    <span id="cell-{{i}}-in-label">{{resources.prompt_in}}</span>
     <span aria-hidden="true">{{resources.prompt_left}}</span>
-    <span>{{execution_count}}</span>
+    <span id="cell-{{i}}-exec-label">{{execution_count}}</span>
     <span aria-hidden="true">{{resources.prompt_right}}</span>
 </label>
 {% endmacro %}
@@ -49,9 +47,10 @@ that would include talking to the kernel. #}
 
 {% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
 <textarea class="nb-source" form="cell-{{i}}" id="cell-{{i}}-source" name="source"
-    rows="{{source.splitlines().__len__()}}" aria-labelledby="cell-{{i}}-source-label nb-source-label"
+    rows="{{source.splitlines().__len__()}}" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label nb-source-label"
     readonly>{{source}}</textarea>
-<div role="group" aria-labelledby="nb-source-label" aria-roledescription="highlighted">
+{# should say something like highlight source #}
+<div role="group" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label" aria-roledescription="highlighted">
     {{highlight(source, cell_type)}}
 </div>
 {% endmacro %}
@@ -69,7 +68,7 @@ that would include talking to the kernel. #}
 </dialog>
 {% endmacro %}
 
-{%- macro cell_output(i, cell, source, outputs, cell_type, execution_count, hidden=False) -%}
+{%- macro cell_output(i, cell, source, outputs, cell_type, metadata, execution_count, hidden=False) -%}
 {% set CODE = cell_type == "code" %}
 {% if CODE %}
 {% if execution_count %}
@@ -77,7 +76,7 @@ that would include talking to the kernel. #}
 {% endif %}
 {# the following span should get its own column in the table #}
 <fieldset
-    class="nb-outputs{% if cell.metadata.get('scrolled')%} nb-scrolled{% endif %}{% if cell.metadata.get('collapsed')%} nb-collapsed{% endif %}"
+    class="nb-outputs{% if metadata.get('scrolled')%} nb-scrolled{% endif %}{% if metadata.get('collapsed')%} nb-collapsed{% endif %}"
     {{hide(hidden)}} data-outputs="{{outputs.__len__()}}">
     <legend id="cell-{{i}}-outputs-label" aria-describedby="nb-outputs-desc" {{hide(not
         resources.global_content_filter.include_output_prompt)}}>
@@ -92,9 +91,16 @@ that would include talking to the kernel. #}
     {{cell_display_priority(i, outputs, cell)}}
     {% endif %}
 </fieldset>
-{% else %}
+{%- else %}
+{%- set html = metadata.get("data", {}).get("text/html") %}
+{%- if html -%}
+{# if there is a data bundle in the metadata then we can use that
+instead of computing the markup #}
+{{html}}
+{%- else -%}
 {{ markdown(source) | strip_files_prefix }}
-{% endif %}
+{%- endif -%}
+{%- endif -%}
 {%- endmacro -%}
 
 {% macro cell_loc(i, cell, tag="span") %}
@@ -112,7 +118,7 @@ that would include talking to the kernel. #}
     {{cell_cell_type(loop.index, cell.cell_type, hidden=True)}}
     {{cell_source(loop.index, cell.source, cell.cell_type, cell.execution_count, hidden=cell.cell_type != "code")}}
     {{cell_loc(loop.index, cell)}}
-    {{cell_output(loop.index, cell, cell.source, cell.outputs, cell.cell_type, cell.execution_count)}}
+    {{cell_output(loop.index, cell, cell.source, cell.outputs, cell.cell_type, cell.metadata, cell.execution_count)}}
     {{cell_metadata(loop.index, cell.metadata, hidden=True)}}
 </{{tag}}>
 {% endmacro%}
