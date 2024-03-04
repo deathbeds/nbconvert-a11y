@@ -1,0 +1,101 @@
+/* css to accompany the semantic outputs.py
+
+these styles make the semantic html appear like python styled reprs.
+prettifying python combines content and style, but with html
+we can seperate these concerns. */
+
+
+[itemscope] {
+    font-family: monospace;
+}
+
+.jp-RenderedHTMLCommon kbd {
+    font-size: unset;
+}
+
+samp[itemscope]::before,
+samp[itemscope]::after {
+    content: '"';
+}
+
+data[itemscope] {
+    color: var(--jp-mirror-editor-number-color);
+}
+
+data[value] {
+    color: var(--jp-mirror-editor-keyword-color);
+}
+
+samp[itemscope] {
+    color: var(--jp-mirror-editor-string-color);
+}
+
+ol[itemscope],
+ul[itemscope] {
+    li {
+        display: inline;
+
+        &::after {
+            content: ", ";
+        }
+
+        &:first-child::before {
+            content: '[';
+            color: var(--jp-mirror-editor-bracket-color);
+        }
+
+        &:last-child::after {
+            content: ']';
+            color: var(--jp-mirror-editor-bracket-color);
+        }
+    }
+}
+
+ol[itemtype$=tuple] li {
+    &:first-child::before {
+        content: '(';
+    }
+
+    &:last-child::after {
+        content: ')';
+    }
+}
+
+ul[itemtype$=set] li {
+    &:first-child::before {
+        content: '{';
+    }
+
+    &:last-child::after {
+        content: '}';
+    }
+}
+
+dl[itemtype] {
+
+    dd,
+    dt {
+        display: inline;
+        float: unset;
+
+    }
+
+    dt:first-child::before {
+        content: "{";
+        color: var(--jp-mirror-editor-bracket-color);
+    }
+
+    dd:last-child::after {
+        content: "}";
+        color: var(--jp-mirror-editor-bracket-color);
+
+    }
+
+    dt::after {
+        content: ": ";
+    }
+
+    dd::after {
+        content: ", ";
+    }
+}
