@@ -12,7 +12,7 @@
 {% macro cell_form(i, cell_type, hidden=True) %}
 {# the cell form acts a formal reference for each cell. as a form, each cell can handle a submission process
 that would include talking to the kernel. #}
-<form class="nb-toolbar" id="cell-{{i}}" name="cell-{{i}}" aria-labelledby="cell-{{i}}-source-label" {{hide(hidden)}}>
+<form class="nb-toolbar" id="cell-{{i}}" name="cell-{{i}}" aria-labelledby="cell-{{i}}-exec-label" {{hide(hidden)}}>
     <fieldset>
         <legend>actions</legend>
         <button type="submit">Run Cell</button>
