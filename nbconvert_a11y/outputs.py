@@ -9,6 +9,7 @@ import functools
 import bs4
 import json
 from IPython import get_ipython
+from numpy import float_, int_
 
 HERE = Path(__file__).parent
 CSS = HERE / "outputs.css"
@@ -69,6 +70,7 @@ def get_id(value):
         return f"{value.__module__}:{value.__qualname__}"
     return str(id(value))
 
+
 def get_from_garbage(object):
     get_referrers(object)
 
@@ -115,19 +117,30 @@ def repr_string(value, level=0, maxlevels=6, context=None):
             return new("a", value, href=value)
     elif pre in {"data"}:
         "handle data uri"
-    return new("samp", value, itemscope=None, itemtype=get_type(value))
+    return new(
+        "samp", value, itemscope=None, itemtype=get_type(value), **{"class": "s2"}
+    )  # s1 is single quote
 
 
 @repr_semantic.register(bool)
 @repr_semantic.register(type(None))
 def repr_const(value, level=0, maxlevels=6, context=None):
-    return new("data", str(value), value=json.dumps(value))
+    return new("data", str(value), value=json.dumps(value), **{"class": "kc"})
 
 
 @repr_semantic.register(int)
+@repr_semantic.register(int_)
+@repr_semantic.register(float_)
 @repr_semantic.register(float)
 def repr_number(value, level=0, maxlevels=6, context=None):
-    return new("data", str(value), itemscope=None, itemtype=get_type(value))
+    return new(
+        "data",
+        str(value),
+        itemscope=None,
+        itemtype=get_type(value),
+        style=f"--val: {value};",
+        **{"class": "m" + "if"[isinstance(value, float)]},
+    )
 
 
 @repr_semantic.register(bytes)
