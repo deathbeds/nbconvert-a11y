@@ -98,7 +98,7 @@ that would include talking to the kernel. #}
 instead of computing the markup #}
 {{html}}
 {%- else -%}
-{{ markdown(source) | strip_files_prefix }}
+{{ source | markdown2html | strip_files_prefix }}
 {%- endif -%}
 {%- endif -%}
 {%- endmacro -%}

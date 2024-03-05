@@ -4,6 +4,7 @@ this design assumes __notebooks are a feed of forms__.
 """
 
 import builtins
+from copy import copy, deepcopy
 import json
 from contextlib import suppress
 from datetime import datetime
@@ -73,7 +74,7 @@ THEMES = {
 }
 
 
-class PostProcess(Exporter):
+class PostProcess(HTMLExporter):
     """an exporter that allows post processing after the templating step
 
     this class introduces the `post_process_html` protocol that can be used to modify
@@ -88,7 +89,7 @@ class PostProcess(Exporter):
     def post_process_html(self, body): ...
 
 
-class A11yExporter(PostProcess, HTMLExporter):
+class A11yExporter(PostProcess):
     """an accessible reference implementation for computational notebooks implemented for ipynb files.
 
     this template provides a flexible screen reader experience with settings to control and customize the reading experience.
@@ -140,6 +141,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     prompt_out = CUnicode("Out").tag(config=True)
     prompt_left = CUnicode("[").tag(config=True)
     prompt_right = CUnicode("]").tag(config=True)
+    validate_nb = Bool(False).tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -177,9 +179,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         return c
 
     def init_resources(self, resources=None):
-        if resources is None:
-            resources = {}
-        resources = resources or {}
+        resources = self._init_resources(resources)
         resources["include_axe"] = self.include_axe
         resources["include_settings"] = self.include_settings
         resources["include_help"] = self.include_help
@@ -217,6 +217,18 @@ class A11yExporter(PostProcess, HTMLExporter):
                 if not details.select_one("nav"):
                     details.append(toc(soup))
         return soup.prettify(formatter="html5")
+
+    def _preprocess(self, nb, resources):
+        nbc = deepcopy(nb)
+        resc = deepcopy(resources)
+
+        for preprocessor in self._preprocessors:
+            nbc, resc = preprocessor(nbc, resc)
+
+        if self.validate_nb:
+            self._validate_preprocessor(nbc, preprocessor)
+
+        return nbc, resc
 
 
 class SectionExporter(A11yExporter):
@@ -303,7 +315,7 @@ def toc(html):
         level = int(header.name[-1])
         if last_level > level:
             for l in range(level, last_level):
-                last_level -= 1 
+                last_level -= 1
                 ol = ol.parent.parent
         elif last_level < level:
             for l in range(last_level, level):
