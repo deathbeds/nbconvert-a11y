@@ -4,8 +4,13 @@ these styles make the semantic html appear like python styled reprs.
 prettifying python combines content and style, but with html
 we can seperate these concerns. */
 
+:root {
+    --quote: '"';
+}
 
-[itemscope]:not(table) {
+data[value],
+[itemscope]:not([itemtype$=DataFrame]),
+[itemscope]:not([itemtype$=Series]) {
     font-family: monospace;
 }
 
@@ -15,18 +20,19 @@ we can seperate these concerns. */
 
 samp[itemscope]::before,
 samp[itemscope]::after {
-    content: '"';
+    content: var(--quote);
 }
 
-data[itemscope] {
+.jp-RenderedHTMLCommon [itemscope] {
     color: var(--jp-mirror-editor-number-color);
 }
 
-data[value] {
+.jp-RenderedHTMLCommon data[value] {
     color: var(--jp-mirror-editor-keyword-color);
+    font-weight: bold;
 }
 
-samp[itemscope] {
+.jp-RenderedHTMLCommon samp[itemscope] {
     color: var(--jp-mirror-editor-string-color);
 }
 
@@ -90,6 +96,11 @@ table caption {
     display: unset;
 }
 
+dl[itemscope] dd,
+dl[itemscope] dt {
+    display: inline;
+}
+
 dl[itemtype] {
 
     dt:first-child::before {
@@ -110,4 +121,44 @@ dl[itemtype] {
     dd::after {
         content: ", ";
     }
+}
+
+.visually-hidden,
+.non-visual,
+.nv {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+table[itemtype$=ndarray] {
+    text-align: right;
+
+    td:first-child::before {
+        content: "[";
+        float: left;
+    }
+
+    td::after {
+        content: ",";
+    }
+
+    td:last-child::after {
+        content: "]";
+    }
+}
+
+:not(.jp-RenderedMarkdown).jp-RenderedHTMLCommon td,
+:not(.jp-RenderedMarkdown).jp-RenderedHTMLCommon th,
+:not(.jp-RenderedMarkdown).jp-RenderedHTMLCommon tr {
+    vertical-align: unset;
+    text-align: unset;
+}
+
+.jp-RenderedHTMLCommon tr {
+    padding: unset;
 }

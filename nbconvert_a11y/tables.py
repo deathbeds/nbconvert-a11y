@@ -1,84 +1,93 @@
+from numpy import ndarray
 import pandas, bs4, functools
-from .outputs import get_type, repr_semantic, repr_semantic_update
+from .outputs import get_type, repr_html, repr_semantic, repr_semantic_update
 
 
 def load_ipython_extension(shell):
     repr_semantic_update()
 
 
-def get_caption(df):
+def get_caption(df, ROW_INDEX=True, COL_INDEX=True):
     dl = new("dl", role="presentation")
     dl.append(new("dt", "rows")), dl.append(new("dd", str(len(df))))
     dl.append(new("dt", "columns")), dl.append(new("dd", str(len(df.columns))))
     dl.append(new("dt", "indexes")), dl.append(new("dd", indexes := new("dl", role="presentation")))
-    indexes.append(new("dt", "rows")), indexes.append(new("dd", str(df.index.nlevels)))
-    indexes.append(new("dt", "columns")), indexes.append(new("dd", str(df.columns.nlevels)))
+    indexes.append(new("dt", "rows")), indexes.append(new("dd", str(df.index.nlevels * ROW_INDEX)))
+    indexes.append(new("dt", "columns")), indexes.append(
+        new("dd", str(df.columns.nlevels * COL_INDEX))
+    )
     return dl
 
 
-def row_major_at_rows(df):
-    return df.columns.nlevels + len(df)
+def row_major_at_rows(df, COL_INDEX=True):
+    return df.columns.nlevels * COL_INDEX + len(df)
 
 
-def row_major_at_cols(df):
-    return df.index.nlevels + int(any(df.columns.names)) + len(df.columns)
-
-
-@repr_semantic.register(pandas.Series)
-def repr_series(object):
-    return get_table(object.to_frame().T)
+def row_major_at_cols(df, ROW_INDEX=True):
+    return df.index.nlevels * ROW_INDEX + int(any(df.columns.names)) + len(df.columns)
 
 
 @repr_semantic.register(pandas.DataFrame)
-def get_table(df, caption=None, ARIA=True):
+@repr_semantic.register(ndarray)
+def get_table(df, caption=None, ARIA=True, ROW_INDEX=True, COL_INDEX=True, SEMANTIC=True):
     soup = bs4.BeautifulSoup(features="lxml")
-    ROWS, COLS = any(df.index.names), any(df.columns.names)
     WIDE = (df.shape[1] + 1) > pandas.options.display.max_columns
     LONG = (df.shape[0] + 1) > pandas.options.display.max_rows
-    col_ranges, row_ranges = get_ranges(df, WIDE, LONG)
     soup.append(
         table := new(
             "table",
-            colcount=row_major_at_cols(df) if ARIA or WIDE else None,
-            rowcount=row_major_at_rows(df) if ARIA or LONG else None,
             itemscope=None,
             itemtype=get_type(df),
         )
     )
+    if isinstance(df, ndarray):
+        ROW_INDEX = COL_INDEX = False
+        df = pandas.DataFrame(df)
+
+    table.attrs.update(
+        colcount=row_major_at_cols(df, ROW_INDEX) if ARIA or WIDE else None,
+        rowcount=row_major_at_rows(df, COL_INDEX) if ARIA or LONG else None,
+    )
+    col_ranges, row_ranges = get_ranges(df, WIDE, LONG)
     table.append(cap := new("caption", caption))
-    cap.append(get_caption(df))
-    get_thead(df, table, col_ranges, WIDE, ARIA, LONG)
-    get_tbody(df, table, col_ranges, row_ranges, WIDE, ARIA, LONG)
+    if caption is None:
+        cap.attrs["class"] = "nv"
+    cap.append(get_caption(df, ROW_INDEX, COL_INDEX))
+    if COL_INDEX:
+        get_thead(df, table, col_ranges, WIDE, ARIA, LONG, ROW_INDEX)
+    get_tbody(df, table, col_ranges, row_ranges, WIDE, ARIA, LONG, ROW_INDEX, COL_INDEX, SEMANTIC)
     return soup
 
 
-def get_thead(df, table, col_ranges, WIDE=False, ARIA=False, LONG=False):
+def get_thead(df, table, col_ranges, WIDE=False, ARIA=False, LONG=False, ROW_INDEX=True):
     ROWS, COLS = any(df.index.names), any(df.columns.names)
     col_center = col_ranges[1].start - col_ranges[0].stop
     for col_level, col_name in enumerate(df.columns.names):
-        table.append(tr := trow(rowindex=col_level + 1 if ARIA or LONG and row_part else None))
-        if not col_level:
-            if ROWS or not COLS:
-                for row_level, row_name in enumerate(df.index.names):
-                    tr.append(
-                        th := theading(
-                            str(
-                                row_name
-                                or ("index" if len(df.index) == 1 else f"index {row_level}")
-                            ),
-                            scope="col",
-                            rowspan=df.columns.nlevels if df.columns.nlevels > 1 else None,
-                            colindex=row_level + 1 if ARIA else None,
+        table.append(tr := trow(rowindex=col_level + 1 if ARIA or LONG else None))
+        if ROW_INDEX:
+            if not col_level:
+                # on the first pass write column or index names
+                if ROWS or not COLS:
+                    for row_level, row_name in enumerate(df.index.names):
+                        tr.append(
+                            th := theading(
+                                str(
+                                    row_name
+                                    or ("index" if df.index.nlevels == 1 else f"index {row_level}")
+                                ),
+                                scope="col",
+                                rowspan=df.columns.nlevels if df.columns.nlevels > 1 else None,
+                                colindex=row_level + 1 if ARIA else None,
+                            )
                         )
+            if COLS:
+                tr.append(
+                    theading(
+                        str(col_name or ("column" if len(df.index) == 1 else f"index {col_level}")),
+                        scope="row",
+                        colindex=df.index.nlevels + 1 if ARIA else None,
                     )
-        if COLS:
-            tr.append(
-                theading(
-                    str(col_name or ("column" if len(df.index) == 1 else f"index {col_level}")),
-                    scope="row",
-                    colindex=df.index.nlevels + 1 if ARIA else None,
                 )
-            )
 
         for col_part, col_range in enumerate(col_ranges):
             if col_part and col_range:
@@ -106,62 +115,97 @@ def get_thead(df, table, col_ranges, WIDE=False, ARIA=False, LONG=False):
                 )
 
 
-def get_tbody(df, table, col_ranges, row_ranges, WIDE=False, ARIA=False, LONG=False):
+def get_tbody(
+    df,
+    table,
+    col_ranges,
+    row_ranges,
+    WIDE=False,
+    ARIA=False,
+    LONG=False,
+    ROW_INDEX=True,
+    COL_INDEX=True,
+    SEMANTIC=False,
+):
     ROWS, COLS = any(df.index.names), any(df.columns.names)
     row_center = row_ranges[1].start - row_ranges[0].stop
     col_center = col_ranges[1].start - col_ranges[0].stop
     for row_part, row_range in enumerate(row_ranges):
         if row_part and row_range:
+            # handle hidden data in between dataframe regions
             table.append(
                 tr := trow(
-                    rowindex=row_index + 2 + df.columns.nlevels, **{"aria-rowspan": row_center}
+                    rowindex=row_index + 2 + df.columns.nlevels * COL_INDEX,
+                    **{"aria-rowspan": row_center},
                 )
             )
-            for row_level in range(df.index.nlevels):
-                tr.append(theading(HIDDEN, colindex=row_level + 1))
-            if ROWS and COLS:
-                tr.append(tdata(EMPTY, colindex=row_level + 2))
+            if ROW_INDEX:
+                # shw the row headers
+                for row_level in range(df.index.nlevels):
+                    tr.append(theading(HIDDEN, colindex=row_level + 1))
+                if ROWS and COLS:
+                    tr.append(tdata(EMPTY, colindex=row_level + 2))
+            else:
+                row_level = 0
+
             for col_part, col_range in enumerate(col_ranges):
+                # write the column values
                 if col_part and col_range:
+                    # write the hidden columns
                     tr.append(
                         tdata(
                             HIDDEN,
-                            colindex=col_index + 2 + df.index.nlevels + int(ROWS and COLS),
+                            colindex=col_index
+                            + 2
+                            + df.index.nlevels * ROW_INDEX
+                            + int(ROWS and COLS),
                             **{"aria-rowspan": row_center, "aria-colspan": col_center},
                         ),
                     )
                 for col_index in col_range:
+                    # write the column values
                     tr.append(
                         tdata(
-                            HIDDEN, colindex=col_index + 1 + df.index.nlevels + int(ROWS and COLS)
+                            HIDDEN,
+                            colindex=col_index
+                            + 1
+                            + df.index.nlevels * ROW_INDEX
+                            + int(ROWS and COLS),
                         )
                     )
         for row_index in row_range:
-            table.append(tr := trow(rowindex=row_index + 1 + df.columns.nlevels))
-            for row_level in range(df.index.nlevels):
-                tr.append(
-                    theading(
-                        str(df.index.get_level_values(row_level)[row_index]),
-                        colindex=row_level + 1 if ARIA else None,
-                        scope="row",
+            table.append(tr := trow(rowindex=row_index + 1 + df.columns.nlevels * COL_INDEX))
+            if ROW_INDEX:
+                for row_level in range(df.index.nlevels):
+                    tr.append(
+                        theading(
+                            str(df.index.get_level_values(row_level)[row_index]),
+                            colindex=row_level + 1 if ARIA else None,
+                            scope="row",
+                        )
                     )
-                )
-            if ROWS and COLS:
-                tr.append(tdata(EMPTY, colindex=row_level + 2))
+                if ROWS and COLS:
+                    tr.append(tdata(EMPTY, colindex=row_level + 2))
             for col_part, col_range in enumerate(col_ranges):
                 if col_part and col_range:
                     tr.append(
                         tdata(
                             HIDDEN,
-                            colindex=col_index + 2 + df.index.nlevels + int(ROWS and COLS),
+                            colindex=col_index
+                            + 2
+                            + df.index.nlevels * ROW_INDEX
+                            + int(ROWS and COLS),
                             **{"aria-colspan": col_center},
                         )
                     )
                 for col_index in col_range:
                     tr.append(
                         tdata(
-                            str(df.iloc[row_index, col_index]),
-                            colindex=col_index + 1 + df.index.nlevels + int(ROWS and COLS),
+                            (SEMANTIC and repr_html or str)(df.iloc[row_index, col_index]),
+                            colindex=col_index
+                            + 1
+                            + df.index.nlevels * ROW_INDEX
+                            + int(ROWS and COLS),
                         )
                     )
 
