@@ -33,7 +33,7 @@ const BODY = document.querySelector("body"), SELECTORS = {
 };
 
 function toggleColorScheme(value = null) {
-    value = value === null ? document.forms.settings.elements["color-scheme"].value : value;
+    value = document.forms.settings.elements["color-scheme"].value;
     let DARK = value == "dark";
     let opposite = DARK ? "light" : "dark";
     document.getElementById(`nb-${value}-highlight`).removeAttribute("media", "screen");
