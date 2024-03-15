@@ -215,6 +215,10 @@ document.forms.settings['horizontal-scrolling'].addEventListener("change",
         // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
     });
 
+document.forms.visibility["accessibility-audit"].addEventListener("change", (event) => {
+    document.getElementsByTagName("body")[0].toggleAttribute("data-dev-sa11y", event.target.value);
+});
+
 
 function fullScreen() {
     if (!document.fullscreenElement) {
@@ -235,7 +239,7 @@ function setTextareaWidth(entry, set = null) {
         let width = entry.target.scrollWidth,
             left = Number(props.borderLeftWidth.slice(0, -2)),
             right = Number(props.borderRightWidth.slice(0, -2));
-        entry.target.style.width = `${Math.ceil(width) + Math.ceil(left) + Math.ceil(right) + 1}px`
+        entry.target.style.width = `${Math.floor(width)}px`
         setTextareaHeight(entry, true);
     }
 }
@@ -258,7 +262,7 @@ let observer = new ResizeObserver(
     (entries) => {
         entries.forEach((entry) => {
             (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)(entry, true);
-        });
+        });a
     }
 );
 

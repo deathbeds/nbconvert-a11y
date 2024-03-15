@@ -35,6 +35,14 @@ body {
     background-color: var(--color-light);
 }
 
+body:not([data-dev-sa11y]) sa11y-control-panel {
+    display: none;
+}
+
+body[data-dev-sa11y] sa11y-control-panel {
+    display: unset;
+}
+
 body.dark {
     color: var(--color-light);
     background-color: var(--color-dark);
@@ -126,8 +134,9 @@ the design decisions are focused native elements so that the assistive technolog
 
 /* line height cant change pre elements based on browser presets */
 pre,
+.highlight>pre,
 textarea {
-    line-height: inherit;
+    line-height: var(--nb-line-height);
     white-space: pre-wrap;
 }
 
@@ -157,9 +166,7 @@ li.cell {
     display: none;
 }
 
-tr.cell>th:first-child {
-    
-}
+tr.cell>th:first-child {}
 
 table {
     border-spacing: unset;
