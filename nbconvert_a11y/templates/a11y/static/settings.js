@@ -216,7 +216,7 @@ document.forms.settings['horizontal-scrolling'].addEventListener("change",
     });
 
 document.forms.visibility["accessibility-audit"].addEventListener("change", (event) => {
-    document.getElementsByTagName("body")[0].toggleAttribute("data-dev-sa11y", event.target.value);
+    document.getElementsByTagName("body")[0].toggleAttribute("data-dev-sa11y", event.target.checked);
 });
 
 
