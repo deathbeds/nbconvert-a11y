@@ -262,7 +262,7 @@ let observer = new ResizeObserver(
     (entries) => {
         entries.forEach((entry) => {
             (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)(entry, true);
-        });a
+        });
     }
 );
 
