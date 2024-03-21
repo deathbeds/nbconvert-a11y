@@ -96,9 +96,11 @@ that would include talking to the kernel. #}
     {% endif %}
 </fieldset>
 {%- else %}
+{# when there is markdown we show html output;
+it is the woven state of the input for raw source code. a monad for strings. #}
 {%- set html = metadata.get("data", {}).get("text/html") %}
 {%- if html -%}
-{# if there is a data bundle in the metadata then we can use that
+{# if there is a pre-computed data bundle in the metadata then we can use that
 instead of computing the markup #}
 {{html}}
 {%- else -%}
