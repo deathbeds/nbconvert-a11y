@@ -4,6 +4,7 @@ this design assumes __notebooks are a feed of forms__.
 """
 
 import builtins
+from copy import copy, deepcopy
 import json
 from contextlib import suppress
 from datetime import datetime
@@ -73,7 +74,7 @@ THEMES = {
 }
 
 
-class PostProcess(Exporter):
+class PostProcess(HTMLExporter):
     """an exporter that allows post processing after the templating step
 
     this class introduces the `post_process_html` protocol that can be used to modify
@@ -88,7 +89,7 @@ class PostProcess(Exporter):
     def post_process_html(self, body): ...
 
 
-class A11yExporter(PostProcess, HTMLExporter):
+class A11yExporter(PostProcess):
     """an accessible reference implementation for computational notebooks implemented for ipynb files.
 
     this template provides a flexible screen reader experience with settings to control and customize the reading experience.
@@ -99,7 +100,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         config=True
     )
     axe_url = CUnicode(AXE, help="the remote source for the axe resources.").tag(config=True)
-    include_sa11y = Bool(False, help="include sa11y accessibility authoring tool").tag(config=True)
+    include_sa11y = Bool(True, help="include sa11y accessibility authoring tool").tag(config=True)
     include_settings = Bool(False, help="include configurable accessibility settings dialog.").tag(
         config=True
     )
@@ -126,7 +127,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
     allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
     hide_anchor_links = Bool(False).tag(config=True)
-    exclude_anchor_links = Bool(False).tag(config=True)
+    hidden_anchor_links = Bool(False).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
@@ -140,6 +141,7 @@ class A11yExporter(PostProcess, HTMLExporter):
     prompt_out = CUnicode("Out").tag(config=True)
     prompt_left = CUnicode("[").tag(config=True)
     prompt_right = CUnicode("]").tag(config=True)
+    validate_nb = Bool(False).tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -177,9 +179,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         return c
 
     def init_resources(self, resources=None):
-        if resources is None:
-            resources = {}
-        resources = resources or {}
+        resources = self._init_resources(resources)
         resources["include_axe"] = self.include_axe
         resources["include_settings"] = self.include_settings
         resources["include_help"] = self.include_help
@@ -196,7 +196,7 @@ class A11yExporter(PostProcess, HTMLExporter):
         resources["prompt_out"] = self.prompt_out
         resources["prompt_left"] = self.prompt_left
         resources["prompt_right"] = self.prompt_right
-        resources["exclude_anchor_links"] = self.exclude_anchor_links
+        resources["hidden_anchor_links"] = self.hidden_anchor_links
         resources["hide_anchor_links"] = self.hide_anchor_links
         resources["table_pattern"] = getattr(Roles, self.table_pattern)
         resources["allow_run_mode"] = self.allow_run_mode
@@ -217,6 +217,18 @@ class A11yExporter(PostProcess, HTMLExporter):
                 if not details.select_one("nav"):
                     details.append(toc(soup))
         return soup.prettify(formatter="html5")
+
+    def _preprocess(self, nb, resources):
+        nbc = deepcopy(nb)
+        resc = deepcopy(resources)
+
+        for preprocessor in self._preprocessors:
+            nbc, resc = preprocessor(nbc, resc)
+
+        if self.validate_nb:
+            self._validate_preprocessor(nbc, preprocessor)
+
+        return nbc, resc
 
 
 class SectionExporter(A11yExporter):
@@ -303,7 +315,7 @@ def toc(html):
         level = int(header.name[-1])
         if last_level > level:
             for l in range(level, last_level):
-                last_level -= 1 
+                last_level -= 1
                 ol = ol.parent.parent
         elif last_level < level:
             for l in range(last_level, level):

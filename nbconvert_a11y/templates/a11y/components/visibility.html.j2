@@ -28,6 +28,7 @@
     <form name="visibility">
         <button formmethod="dialog">Close</button>
         {{checkbox("visually hide", False)}}
+        {{checkbox("accessibility audit", False)}}
         <fieldset disabled>
             <legend>visibility</legend>
             <table aria-label="notebook cell visibility" role="grid">
@@ -42,6 +43,7 @@
                     {{checkbox_row("markdown", labels)}}
                     {{checkbox_row("raw", labels)}}
                 </tbody>
+
             </table>
         </fieldset>
     </form>

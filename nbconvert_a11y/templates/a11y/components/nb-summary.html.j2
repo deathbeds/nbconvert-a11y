@@ -21,11 +21,16 @@
             <dd></dd>
             <dt>state</dt>
             <dd id="nb-state">{{nb | is_ordered}}</dd>
-            {% set lang = nb.metadata.get("language_info", {}).get("name") or nb.metadata.get("kernelspec",
-            {}).get("name")%}
-            {% if lang %}
-            <dt>language</dt>
-            <dd id="nb-lang">{{lang}}</dd>
+            {% if nb.metadata.kernelspec %}<dt>kernel</dt>
+            <dd>{{nb.metadata.kernelspec.display_name}}</dd>
+            <dd>
+                <dl>
+                    <dt>language</dt>
+                    <dd id="nb-lang">{{nb.metadata.kernelspec.language}}</dd>
+                    <dt>name</dt>
+                    <dd><samp><kbd>{{nb.metadata.kernelspec.name}}</kbd></samp></dd>
+                </dl>
+            </dd>
             {% endif %}
             <dt id="nb-loc-label">lines of code</dt>
             <dd id="nb-ct-loc">{{nb | count_loc}}</dd>
