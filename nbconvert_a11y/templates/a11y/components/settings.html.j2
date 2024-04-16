@@ -36,6 +36,9 @@ settings provides multiple screen reader navigation techniques when the dialog i
                     {% set priority = {"Triple A": "AAA","Double A": "AA", "Single A": "A"}%}
                     <li>{{select("accessibility priority", priority, resources.wcag_priority)}}</li>
                     <li>{{input_number("margin", 5, min=0, max=40, step=5, extra_title="%")}}</li>
+                    <li>{{checkbox("sticky", True)}}</li>
+                    <li>{{checkbox("invert", False)}}</li>
+                    <li>{{checkbox("grayscale", False)}}</li>
                     <li>{{checkbox("accesskey navigation", True)}}</li>
                 </ul>
             </li>

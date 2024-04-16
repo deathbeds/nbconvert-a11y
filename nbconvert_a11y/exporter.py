@@ -101,7 +101,7 @@ class A11yExporter(PostProcess):
     )
     axe_url = CUnicode(AXE, help="the remote source for the axe resources.").tag(config=True)
     include_sa11y = Bool(True, help="include sa11y accessibility authoring tool").tag(config=True)
-    include_settings = Bool(False, help="include configurable accessibility settings dialog.").tag(
+    include_settings = Bool(True, help="include configurable accessibility settings dialog.").tag(
         config=True
     )
     # if help is not included the a bunch of aria label get fucked up and we fail
@@ -142,6 +142,7 @@ class A11yExporter(PostProcess):
     prompt_left = CUnicode("[").tag(config=True)
     prompt_right = CUnicode("]").tag(config=True)
     validate_nb = Bool(False).tag(config=True)
+    exclude_anchor_links = Bool(True).tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -324,15 +325,18 @@ def toc(html):
                 li.append(ol := toc.new_tag("ol"))
         ol.append(li := toc.new_tag("li"))
         li.append(a := toc.new_tag("a"))
-        a.append(header.text)
+        pilcrow = header.select_one(".pilcrow")
+        text = header.text
+        if pilcrow:
+            text = text.rstrip(pilcrow.text)
+        a.append(text)
         a.attrs.update(href=f"#{id}")
-
     return toc
 
 
 def heading_links(html):
     """Convert headings into links"""
-    for header in html.select(":is(h1,h2,h3,h4,h5,h6):not([role])"):
+    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6):not([role])"):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
@@ -342,9 +346,14 @@ def heading_links(html):
             else:
                 continue
 
-        link = soupify(f"""<a href="#{id}">{header.text}</a>""").body.a
+        (header_body := html.new_tag("span"))
+        header_body.extend(header.children)
         header.clear()
+        header.attrs.update(id=id)
+        header_body.attrs.update(**{"aria-hidden": True})
+        link = soupify(f"""<a href="#{id}" class="pilcrow" aria-labelledby="{id}"><span class="pilcrow" data-level="{int(header.name[1])}"></span></a>""").body.a
         header.append(link)
+        header.append(header_body)
 
 
 # * navigate links
