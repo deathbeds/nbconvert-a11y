@@ -25,9 +25,10 @@ and not cell.metadata.get("transient",{}).get("remove_source", false) -%}
 and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {%- endif -%}
 {%- set slide_type = cell.get("metadata", {}).get("slide_type") -%}
-<tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}"
+<tr role="{{resources.table_pattern.row}}" class="cell {{cell.cell_type}}" aria-posinset="{{index}}"
     aria-labelledby="nb-cell-label {{index}} cell-{{index}}-cell_type" data-loc="{{cell.source.splitlines().__len__()}}"
-    {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}" data-slide_type={% if slide_type %}"{{slide_type}}" {% endif %}>
+    {% if cell.cell_type=="code" %} {% endif %} data-index="{{index}}" data-slide_type={% if slide_type
+    %}"{{slide_type}}" {% endif %}>
     <th role="{{resources.table_pattern.rowheader}}" class="nb-anchor" scope="row">{{cell_anchor(index, cell.cell_type,
         cell.execution_count, cell.outputs)}}</td>
     <td role="{{resources.table_pattern.cell}}" class="nb-execution_count" {{hide(cell.cell_type=="markdown" or
@@ -63,13 +64,19 @@ and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 
 {% block body_loop %}
 {# the most consistent implementation would connect the input visibility to a form #}
-<table id="cells" role="{{resources.table_pattern.table}}">
+<fieldset form="settings">
+    <legend>cell ordering</legend>
+    <input type="radio" name="sorted" id="sort-asc" value="ascending"/><label for="sort-asc">ascending</label>
+    <input type="radio" name="sorted" id="sort-desc" value="descending" /><label for="sort-desc">descending</label>
+</fieldset>
+<table id="cells" class="notebook-cells" role="{{resources.table_pattern.table}}" aria-setsize="{{cells.__len__() + 1}}"
+    aria-sort="ascending">
     <colgroup>
         {% for col in COLUMNS %}
         <col class="nb-{{col}}">
         {% endfor %}
     </colgroup>
-    <tbody role="{{resources.table_pattern.rowgroup}}" aria-labelledby="nb-notebook-label nb-cells-label">
+    <tbody role="{{resources.table_pattern.rowgroup}}" class="cells" aria-labelledby="nb-notebook-label nb-cells-label">
         <tr role="{{resources.table_pattern.row}}" hidden>
             {% for col in COLUMNS %}
             <th role="{{resources.table_pattern.columnheader}}" scope="col">{{col}}</th>
