@@ -7,3 +7,4 @@ c.A11yExporter.include_help = True
 c.A11yExporter.include_visibility = True
 c.A11yExporter.include_upload = True
 c.A11yExporter.wcag_priority = "AAA"
+c.A11yExporter.exclude_anchor_links = True
