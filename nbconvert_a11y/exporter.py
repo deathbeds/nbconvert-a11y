@@ -347,7 +347,7 @@ def heading_links(html):
                 continue
 
         
-        (a := html.new_tag("a"))
+        a = html.new_tag("a")
         a.attrs["href"] = F"#{id}"
         a.extend(header.children)
         header.clear()
