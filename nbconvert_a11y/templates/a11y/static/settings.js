@@ -235,7 +235,7 @@ document.forms.settings.grayscale.addEventListener("change", (event) => {
 document.querySelectorAll("input[name=sorted]").forEach(
     (x) => {
         x.addEventListener("change", (y) => {
-            x.checked ? document.querySelector(".notebook-cells").setAttribute("aria-sort", x.value) : null;
+            x.checked ? document.querySelector(".notebook-cells").setAttribute("data-sort", x.value) : null;
         })
     }
 )
