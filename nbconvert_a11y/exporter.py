@@ -350,7 +350,7 @@ def heading_links(html):
         header_body.extend(header.children)
         header.clear()
         header.attrs.update(id=id)
-        header_body.attrs.update(**{"aria-hidden": True})
+        header_body.attrs.update(**{"aria-hidden": str(True).lower()})
         link = soupify(f"""<a href="#{id}" class="pilcrow" aria-labelledby="{id}"><span class="pilcrow" data-level="{int(header.name[1])}"></span></a>""").body.a
         header.append(link)
         header.append(header_body)
