@@ -346,14 +346,13 @@ def heading_links(html):
             else:
                 continue
 
-        (header_body := html.new_tag("span"))
-        header_body.extend(header.children)
+        
+        (a := html.new_tag("a"))
+        a.attrs["href"] = F"#{id}"
+        a.extend(header.children)
         header.clear()
         header.attrs.update(id=id)
-        header_body.attrs.update(**{"aria-hidden": str(True).lower()})
-        link = soupify(f"""<a href="#{id}" class="pilcrow" aria-labelledby="{id}"><span class="pilcrow" data-level="{int(header.name[1])}"></span></a>""").body.a
-        header.append(link)
-        header.append(header_body)
+        header.append(a)
 
 
 # * navigate links
