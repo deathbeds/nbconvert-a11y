@@ -65,7 +65,7 @@
     }
 
     .cells>.cell>:is(.nb-anchor, .nb-execution_count):not([hidden]) {
-        display: inline-block;
+        float: left;
         width: unset;
     }
 
@@ -229,7 +229,7 @@
     @layer reversed {
 
         ol[reversed]#cells,
-        .notebook-cells[aria-sort="descending"] .cells {
+        .notebook-cells[data-sort="descending"] .cells {
             display: flex;
             flex-direction: column-reverse;
         }
