@@ -1,0 +1,35 @@
+<!-- Configure and load Thebe !-->
+
+{% macro thebe_head() %}
+<script type="text/x-thebe-config">
+{
+    requestKernel: true,
+    selector: ".code textarea[name=source]",
+    outputSelector: "fieldset.nb-outputs > div",
+    stripOutputPrompts: true,
+    binderOptions: {
+      repo: "binder-examples/requirements",
+    },
+    codeMirrorConfig: {
+        matchBrackets: true,
+    },
+    mountActivateWidget: true,
+    mountStatusWidget: true,
+    mountRunAllButton: false,
+    mountRestartButton: false,
+    mountRestartAllButton: false,
+  }
+</script>
+<script src="https://unpkg.com/thebe@latest/lib/index.js"></script>
+{% endmacro %}
+
+{% macro thebe_status() %}
+<fieldset name=kernel>
+    <div class="thebe-status" />
+</fieldset>
+{% endmacro %}
+
+{% macro thebe_activate() %}
+{# thebe replaces this #}
+<div class="thebe-activate">Activate</div>
+{% endmacro %}

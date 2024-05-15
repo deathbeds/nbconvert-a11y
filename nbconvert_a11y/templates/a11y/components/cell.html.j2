@@ -52,7 +52,7 @@ that would include talking to the kernel. #}
 {% macro cell_source(i, source, cell_type, execution_count, hidden=False) %}
 <textarea class="nb-source" form="cell-{{i}}" id="cell-{{i}}-source" name="source"
     rows="{{source.splitlines().__len__()}}" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label nb-source-label"
-    readonly>{{source}}</textarea>
+    readonly data-language="python" data-executable="true">{{source}}</textarea>
 {# should say something like highlight source #}
 <div role="group" aria-labelledby="cell-{{i}}-in-label cell-{{i}}-exec-label" aria-roledescription="highlighted">
     {{highlight(source, cell_type)}}
@@ -89,11 +89,13 @@ that would include talking to the kernel. #}
         <span>{{execution_count}}</span>
         <span aria-hidden="true">{{resources.prompt_right}}</span>
     </legend>
+    <div>
     {% if outputs %}
     {# the output description should mention the number of outputs
     saying zero outputs should be an option. a cell without an output is probably a violation. #}
     {{cell_display_priority(i, outputs, cell)}}
     {% endif %}
+    </div>
 </fieldset>
 {%- else %}
 {# when there is markdown we show html output;

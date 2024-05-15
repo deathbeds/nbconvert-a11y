@@ -2,6 +2,7 @@
 {% from "a11y/components/core.html.j2" import hide, time, loc %}
 {% from "a11y/components/cell.html.j2" import cell_anchor, cell_execution_count, cell_cell_type,
 cell_form, cell_source, cell_metadata, cell_output with context%}
+{%- from 'a11y/thebe.html.j2' import thebe_status, thebe_activate, thebe_head with context -%}
 {% set COLUMNS = ["index", "execution_count", "cell_type", "toolbar", "started_at", "completed_at", "source", "loc",
 "metadata", "outputs"] %}
 
@@ -64,19 +65,21 @@ and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 
 {% block body_loop %}
 {# the most consistent implementation would connect the input visibility to a form #}
-<form name="notebook">
-    <fieldset>
-        <legend>cell ordering</legend>
-        <input type="radio" name="sorted" id="sort-asc" value="ascending"/><label for="sort-asc">ascending</label>
-        <input type="radio" name="sorted" id="sort-desc" value="descending" /><label for="sort-desc">descending</label>
-    </fieldset>
-</form>
+<details>
+    <summary>notebook toolbar</summary>
+    {{thebe_activate()}} {# this needs to be outside the form otherwise it becomes a submission button #}
+    <form name="notebook">
+        {{thebe_status()}}
+        <fieldset>
+            <legend>cell ordering</legend>
+            <input type="radio" name="sorted" id="sort-asc" value="ascending" /><label for="sort-asc">ascending</label>
+            <input type="radio" name="sorted" id="sort-desc" value="descending" /><label
+                for="sort-desc">descending</label>
+        </fieldset>
+    </form>
+</details>
+
 <table id="cells" class="notebook-cells" role="{{resources.table_pattern.table}}" data-sort="ascending">
-    <colgroup>
-        {% for col in COLUMNS %}
-        <col class="nb-{{col}}">
-        {% endfor %}
-    </colgroup>
     <tbody role="{{resources.table_pattern.rowgroup}}" class="cells" aria-labelledby="nb-notebook-label nb-cells-label">
         <tr role="{{resources.table_pattern.row}}" hidden>
             {% for col in COLUMNS %}
@@ -101,3 +104,8 @@ the template provides the structure for new cells when they are added. #}
     </table>
 </template>
 {% endblock %}
+
+{% block footer_js %}
+{{super()}}
+{{thebe_head()}}
+{% endblock footer_js %}
