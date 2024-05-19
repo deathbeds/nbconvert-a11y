@@ -131,6 +131,7 @@ class A11yExporter(PostProcess):
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
+    include_thebe = Bool(False, help="include the thebe user interface for interactivity.").tag(config=True)
     table_pattern = Enum(
         list(Roles.options),
         "List",
@@ -201,6 +202,7 @@ class A11yExporter(PostProcess):
         resources["hide_anchor_links"] = self.hide_anchor_links
         resources["table_pattern"] = getattr(Roles, self.table_pattern)
         resources["allow_run_mode"] = self.allow_run_mode
+        resources["include_thebe"] = self.include_thebe
         return resources
 
     def from_notebook_node(self, nb, resources=None, **kw):

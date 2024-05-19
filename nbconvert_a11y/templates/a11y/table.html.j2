@@ -67,9 +67,13 @@ and not cell.metadata.get("jupyter", {}).get("outputs_hidden", False)-%}
 {# the most consistent implementation would connect the input visibility to a form #}
 <details>
     <summary>notebook toolbar</summary>
+    {% if resources.include_thebe -%}
     {{thebe_activate()}} {# this needs to be outside the form otherwise it becomes a submission button #}
-    <form name="notebook">
+    {%- endif %}
+    <form name="notebook">]
+        {% if resources.include_thebe -%}
         {{thebe_status()}}
+        {%- endif %}
         <fieldset>
             <legend>cell ordering</legend>
             <input type="radio" name="sorted" id="sort-asc" value="ascending" /><label for="sort-asc">ascending</label>
@@ -107,5 +111,7 @@ the template provides the structure for new cells when they are added. #}
 
 {% block footer_js %}
 {{super()}}
+{% if resources.include_thebe -%}
 {{thebe_head()}}
+{%- endif %}
 {% endblock footer_js %}
