@@ -36,7 +36,7 @@ def test_dialogs(lorenz, dialog):
     lorenz.page.click(dialog)
     test = lorenz.run()
     try:
-        raise test.raises()
+        test.raises()
     except* AxeViolation["serious-color-contrast-enhanced"]:
         ...
     except* AxeViolation["serious-target-size"]:
