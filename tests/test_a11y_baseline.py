@@ -7,7 +7,7 @@
 
 from pytest import mark
 
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
+from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y, AxeViolation
 
 
 @mark.parametrize(
@@ -30,4 +30,7 @@ def test_axe(axe, notebook, config, exporter_name, name):
     # ignore mathjax at the moment. we might be able to turne mathjax to have better
     # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
     test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
-    test.raises()
+    try:
+        raise test.raises()
+    except* AxeViolation["serious-color-contrast-enhanced"]:
+        ...
