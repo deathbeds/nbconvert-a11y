@@ -12,9 +12,8 @@ platforms = ["linux-64", "osx-64"]                    # "win-64", "osx-arm64"]
 [feature.test-python.tasks.test]
 depends-on = ["pip", "install-axe", "pw-install-ff"]
 inputs = ["pyproject.toml"]
-cmd = """PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers 
-  pip install -e. --no-deps --ignore-installed --disable-pip-version-check 
-  &&  pytest --browser firefox"""
+cmd = """pip install -e. --no-deps --ignore-installed --disable-pip-version-check 
+  &&  PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers pytest --browser firefox"""
 
 [feature.test-axe.dependencies]
 playwright = "*"
