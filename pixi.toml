@@ -6,7 +6,7 @@ version = "0.1.0"
 description = "Add a short description here"
 authors = ["tonyfast <tony.fast@gmail.com>"]
 channels = ["conda-forge", "microsoft", "nodefaults"]
-platforms = ["linux-64", "osx-64"]                    # "win-64", "osx-arm64"]
+platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 
 
 [feature.test-python.tasks.test]
