@@ -19,9 +19,6 @@ inputs = [
 cmd = """pip install -e. --no-deps --ignore-installed --disable-pip-version-check 
   &&  PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers pytest --browser firefox"""
 
-[feature.test-axe.dependencies]
-playwright = "*"
-pytest-playwright = "*"
 
 [feature.test-axe.tasks.install-axe]
 outputs = ["node_modules/axe-core"]
@@ -31,9 +28,26 @@ cmd = "npm install axe-core"
 outputs = [".pixi/.local-browsers/firefox-*"]
 cmd = "PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers playwright install firefox"
 
+[feature.test-axe.dependencies]
+playwright = "*"
+pytest-playwright = "*"
+
 [feature.test-nu-validator.dependencies]
 openjdk = "*"
 vnu-validator = "*"
+
+[feature.docs.dependencies]
+mkdocs-material = ">=9.5.24,<9.6"
+mkdocstrings = ">=0.25.1,<0.26"
+
+[feature.docs.tasks.build]
+inputs = [
+  "mkdocs.yml",
+  "{tests,nbconvert-a11y}/*.{ipynb,md,py}",
+  "{tests,nbconvert-a11y}/**/*.{ipynb,md,py}",
+]
+outputs = ["site"]
+cmd = "mkdocs build -v"
 
 [dependencies]
 # run in CI with --with-deps
@@ -71,14 +85,7 @@ test = { features = [
   "test-axe",
   "test-nu-validator",
 ], solve-group = "default" }
-# docs = { features = [
-#     "demo",
-#     "build",
-#     "dev",
-#     "docs",
-#     "run",
-#     "webdriver",
-# ], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
 
 
 [tasks.pip]
@@ -99,10 +106,8 @@ inputs = [
   "LICENSE",
   "pyproject.toml",
   "README.md",
-  "nbconvert_a11y/*.py",
-  "nbconvert_a11y/**/*.py",
-  "nbconvert_a11y/*.j2",
-  "nbconvert_a11y/**/*.j2",
+  "nbconvert_a11y/**/*.{py,j2}",
+  "nbconvert_a11y/*.{py,j2}",
 ]
 outputs = ["dist/nbconvert_a11y-*.tar.gz", "dist/nbconvert_a11y-*.whl"]
 cmd = "rm -rf dist && pyproject-build . -vv"
