@@ -31,6 +31,6 @@ def test_axe(axe, notebook, config, exporter_name, name):
     # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
     test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
     try:
-        raise test.raises()
+        test.raises()
     except* AxeViolation["serious-color-contrast-enhanced"]:
         ...
