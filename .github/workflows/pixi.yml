@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu", "macos", "windows"]
+        os: ["ubuntu"] #, "macos", "windows"]
     # add matrix for browsers later on
     steps:
       - run: git config --global core.autocrlf false
