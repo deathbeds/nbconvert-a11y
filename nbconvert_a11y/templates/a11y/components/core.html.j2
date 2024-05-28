@@ -47,7 +47,7 @@ at some point effort should be put into separating context dependent and indepen
 <details class="log">
     <summary><span {% if id %}id="nb-activity-log-label" {% endif %}>activity log</span></summary>
 </details>
-<table aria-live="polite">
+<table aria-live="polite" aria-labelledby="nb-activity-log-label">
     <tr>
         <th hidden>time</th>
         <td>message</td>
@@ -61,13 +61,14 @@ at some point effort should be put into separating context dependent and indepen
 {% set name="-".join(map(str.lower, title.split()))%}
 <label>
     {{title}}<input type="number" min="{{min | default('')}}" max="{{max | default('')}}" step="{{step | default('')}}"
-        name="{{name}}" value="{{value}}">{{extra_title}}
+        name="{{name}}" value="{{value}}"/>{{extra_title}}
 </label>
 {% endmacro%}
 
-{% macro checkbox(title, value)%}
+{% macro checkbox(title, value, form=None)%}
 {% set name="-".join(map(str.lower, title.split()))%}
-<label><input type="checkbox" name="{{name}}" {%- if value %} checked{% endif %}>{{title}}</label>
+<label><input type="checkbox" name="{{name}}" {%- if value %} checked{% endif %}{% if form %} form="{{form}}" {% endif
+        %}/>{{title}}</label>
 {% endmacro%}
 
 {% macro dialog_close() %}
@@ -97,7 +98,7 @@ at some point effort should be put into separating context dependent and indepen
 <label>{{title}}
     <select name="{{name}}" id="{{name}}-select" multiple>
         {% for k, v in values.items() %}
-        <option value="{{v}}" {% if k in default %} selected{% endif %}>{{k}}</option>
+        <option value="{{v}}" {% if k in default %} selected{% endif %} label="{{k}}">{{v}}</option>
         {% endfor %}
     </select>
 </label>

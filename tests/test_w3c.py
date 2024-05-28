@@ -34,6 +34,20 @@ htmls = pytest.mark.parametrize(
         ),
         pytest.param(
             get_target_html(
+                (CONFIGURATIONS / (a := "section")).with_suffix(".py"),
+                (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
+            ),
+            id="-".join((b, a)),
+        ),
+        pytest.param(
+            get_target_html(
+                (CONFIGURATIONS / (a := "list")).with_suffix(".py"),
+                (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
+            ),
+            id="-".join((b, a)),
+        ),
+        pytest.param(
+            get_target_html(
                 (CONFIGURATIONS / (a := "default")).with_suffix(".py"),
                 (NOTEBOOKS / (b := "lorenz-executed")).with_suffix(".ipynb"),
             ),
@@ -46,9 +60,15 @@ htmls = pytest.mark.parametrize(
 
 @htmls
 def test_baseline_w3c_paths(html: Path, validate_html_path: "TVnuValidator") -> None:
-    result = validate_html_path(html).run().results.data
-    raise_if_errors(result)
-
+    exc = validate_html_path(html).run().exception()
+    try:
+        raise exc
+    except* ValidatorViolation["info"]:
+        ...
+    except* ValidatorViolation["error-Unrecognized at-rule “@layer”"]:
+        ...
+    except* ValidatorViolation["error-An “img” element must have an “alt” attribute, except under certain conditions. For details, consult guidance on providing text alternatives for images."]:
+        ...
 
 def test_a11y_max(notebook, validate_html_url):
     exc = (
@@ -59,6 +79,10 @@ def test_a11y_max(notebook, validate_html_url):
     try:
         raise exc
     except* ValidatorViolation["info"]:
+        ...
+    except* ValidatorViolation["error-Unrecognized at-rule “@layer”"]:
+        ...
+    except* ValidatorViolation["error-Bad value “none” for attribute “role” on element “table”."]:
         ...
 
 

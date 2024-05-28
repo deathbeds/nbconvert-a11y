@@ -1,8 +1,8 @@
-const BODY = document.querySelector("body"), SELECTORS = {
+const BODY = document.querySelector("body"), HTML = document.querySelector("html"), SELECTORS = {
     "table": "table#cells",
     "body": "table#cells>tbody",
     "row": "table#cells>tbody>tr",
-    "heading": "table#cells>tbody>tr>th",
+    "header": "table#cells>tbody>tr>th",
     "cell": "table#cells>tbody>tr>td",
 }, ROLES = {
     "list": {
@@ -17,7 +17,7 @@ const BODY = document.querySelector("body"), SELECTORS = {
         "row": "row",
         "header": "rowheader",
         "cell": "cell",
-    }, "landmark": {
+    }, "region": {
         "table": "presentation",
         "body": "presentation",
         "row": "region",
@@ -32,12 +32,14 @@ const BODY = document.querySelector("body"), SELECTORS = {
     }
 };
 
-function toggleColorScheme() {
-    let value = document.forms.settings.elements["color-scheme"].value;
-    let opposite = value == "dark" ? "light" : "dark";
-    document.getElementById(`nb-${value}-theme`).removeAttribute("media", "screen");
-    document.getElementById(`nb-${opposite}-theme`).setAttribute("media", "not screen");
+function toggleColorScheme(value = null) {
+    value = document.forms.settings.elements["color-scheme"].value;
+    let DARK = value == "dark";
+    let opposite = DARK ? "light" : "dark";
+    document.getElementById(`nb-${value}-highlight`).removeAttribute("media", "screen");
+    document.getElementById(`nb-${opposite}-highlight`).setAttribute("media", "not screen");
     document.querySelector(`head > meta[name="color-scheme"]`).setAttribute("content", value);
+    BODY.classList.toggle("dark", DARK);
     activityLog(`${value} mode activated`)
 }
 function toggleRole() {
@@ -123,22 +125,7 @@ document.querySelectorAll("table[role=grid]").forEach(
         })
     }
 );
-document.forms.settings.elements["cell-navigation"].addEventListener("change", toggleRole)
 
-document.forms.settings.elements["color-scheme"].addEventListener("change", toggleColorScheme);
-document.forms.settings.elements["font-size"].addEventListener("change", (x) => {
-    setStyle("change font size");
-});
-document.forms.settings.elements["font-family"].addEventListener("change", changeFontFamily);
-document.forms.settings.elements["synthetic-speech"].addEventListener("change", (x) => {
-    activityLog("speech on")
-});
-document.forms.settings.elements.margin.addEventListener("change", (x) => {
-    setStyle("margin changed");
-});
-document.forms.settings.elements["line-height"].addEventListener("change", (x) => {
-    setStyle("line height changed");
-});
 function setWCAG() {
     var priority = document.forms.settings["accessibility-priority"].value.toLowerCase();
     ["a", "aa", "aaa"].forEach(
@@ -151,9 +138,8 @@ function setWCAG() {
         }
     );
 }
-document.forms.settings.elements["accessibility-priority"].addEventListener("change", setWCAG);
 function toggleActive() {
-    if (document.forms.notebook.elements.edit.checked) {
+    if (document.forms.notebook.elements.edit?.checked) {
         document.querySelectorAll("tr.cell>td>details>summary[inert]").forEach(
             x => x.removeAttribute("inert")
         );
@@ -177,10 +163,6 @@ function toggleActive() {
         activityLog("entering reading mode");
     }
 }
-
-
-document.forms.notebook.elements.edit.addEventListener("change", () => toggleActive())
-
 function openDialogs() {
     let trigger = document.querySelector("#nb-dialogs > details");
     Array.from(
@@ -192,6 +174,45 @@ function openDialogs() {
     );
     event.target.focus();
 }
+function fullScreen() {
+    if (!document.fullscreenElement) {
+        document.querySelector("main").requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// resizing hits the width before the height.
+// width resizes trigger height resizes and height resizes need to be computed from scratch.
+// we handle that logic with boolean flags when sets the width/height.
+function setTextareaWidth(entry, set = null) {
+    if (set === null) { return }
+    if (set) {
+        entry.target.style.width = "";
+        let props = getComputedStyle(entry.target);
+        let width = entry.target.scrollWidth,
+            left = Number(props.borderLeftWidth.slice(0, -2)),
+            right = Number(props.borderRightWidth.slice(0, -2));
+        entry.target.style.width = `${Math.floor(width)}px`
+        setTextareaHeight(entry, true);
+    }
+}
+
+function setTextareaHeight(entry, reset = null) {
+    if (reset === null) { return }
+    let props = getComputedStyle(entry.target);
+    if (reset) {
+        entry.target.style.height = ""
+        return setTextareaHeight(entry, false)
+    } else {
+        let height = entry.target.scrollHeight;
+        let top = Number(props.borderTopWidth.slice(0, -2));
+        let bottom = Number(props.borderBottomWidth.slice(0, -2));
+        entry.target.style.height = `${Math.ceil(height) + Math.ceil(top) + Math.ceil(bottom) + 1}px`;
+    }
+
+}
+
 
 setStyle("initialize saved settings.")
 // async function runSource(target) {
@@ -221,3 +242,93 @@ setStyle("initialize saved settings.")
 //         })
 //     }
 // );
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.forms.settings.elements["cell-navigation"].addEventListener("change", toggleRole)
+
+    document.forms.settings.elements["color-scheme"].addEventListener("change", toggleColorScheme);
+    document.forms.settings.elements["font-size"].addEventListener("change", (x) => {
+        setStyle("change font size");
+    });
+    document.forms.settings.elements["font-family"].addEventListener("change", changeFontFamily);
+    document.forms.settings.elements["synthetic-speech"].addEventListener("change", (x) => {
+        activityLog("speech on")
+    });
+    document.forms.settings.elements.margin.addEventListener("change", (x) => {
+        setStyle("margin changed");
+    });
+    document.forms.settings.elements["line-height"].addEventListener("change", (x) => {
+        setStyle("line height changed");
+    });
+    document.forms.settings.elements["accessibility-priority"].addEventListener("change", setWCAG);
+
+    // document.forms.notebook.elements.edit.addEventListener("change", () => toggleActive())
+
+
+    document.forms.visibility['visually-hide'].addEventListener("change",
+        (x) => {
+            document.querySelector("main").classList.toggle("visually-hide");
+            activityLog(`${event.target.checked ? "hiding" : "showing"} main content`);
+        });
+
+    document.forms.settings['horizontal-scrolling'].addEventListener("change",
+        (event) => {
+            BODY.classList.toggle("horiz-overflow", event.target.checked);
+            if (!event.target.checked) {
+                document.querySelectorAll("textarea").forEach(
+                    (x) => {
+                        x.style.width = "";
+                        x.style.height = "";
+                    }
+                )
+            };
+            // activityLog(`${event.target.checked ? "overflow scrol" : "showing"} main content`);
+        });
+
+    document.forms.settings.sticky.addEventListener("change",
+        (event) => {
+            BODY.classList.toggle("sticky", event.target.checked);
+            // activityLog(`${event.target.checked ? "overflow scroll" : "showing"} main content`);
+        });
+
+    document.forms.visibility["accessibility-audit"].addEventListener("change", (event) => {
+        document.getElementsByTagName("body")[0].toggleAttribute("data-dev-sa11y", event.target.checked);
+    });
+
+    document.forms.settings.invert.addEventListener("change", (event) => {
+        HTML.style.setProperty("--nb-invert", event.target.checked ? 1 : 0);
+    })
+    document.forms.settings.grayscale.addEventListener("change", (event) => {
+        HTML.style.setProperty("--nb-grayscale", event.target.checked ? 1 : 0);
+    })
+
+
+    let observer = new ResizeObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)(entry, true);
+            });
+        }
+    );
+
+    document.querySelectorAll("textarea[name=source]").forEach(
+        (x) => {
+            observer.observe(x);
+            (BODY.matches(".horiz-overflow") ? setTextareaWidth : setTextareaHeight)({ target: x }, true);
+        }
+    );
+
+    if (!document.fullscreenEnabled) {
+        document.getElementById("nb-fullscreen").setAttribute("hidden", "");
+    };
+
+    console.log(document.forms.notebook.sorted);
+    document.forms.notebook.sorted.forEach(
+        (x) => {
+            x.addEventListener("change", (event) => {
+                console.log(11);
+                event.target.checked ? document.querySelector(".notebook-cells").setAttribute("data-sort", event.target.value) : null;
+            })
+        });
+
+}, false);

@@ -4,6 +4,7 @@ this design assumes __notebooks are a feed of forms__.
 """
 
 import builtins
+from copy import copy, deepcopy
 import json
 from contextlib import suppress
 from datetime import datetime
@@ -30,6 +31,38 @@ AXE = f"https://cdnjs.cloudflare.com/ajax/libs/axe-core/{AXE_VERSION}/axe.min.js
 SCHEMA = nbformat.validator._get_schema_json(nbformat.v4)
 
 
+class Roles:
+    """different aria settings for the notebook respresentation"""
+
+    options = "Presentation", "Group", "Region", "List", "Table"
+
+    class Presentation:
+        table = "none"
+        rowgroup = "none"
+        row = "none"
+        columnheader = "none"
+        rowheader = "none"
+        cell = "none"
+
+    class Group(Presentation):
+        row = "group"
+
+    class Region(Presentation):
+        row = "region"
+
+    class List(Presentation):
+        rowgroup = "list"
+        row = "listitem"
+
+    class Table:
+        table = "table"
+        rowgroup = "rowgroup"
+        row = "row"
+        columnheader = "columnheader"
+        rowheader = "rowheader"
+        cell = "cell"
+
+
 THEMES = {
     "a11y": "a11y-{}",
     "a11y-high-contrast": "a11y-high-contrast-{}",
@@ -41,7 +74,7 @@ THEMES = {
 }
 
 
-class PostProcess(Exporter):
+class PostProcess(HTMLExporter):
     """an exporter that allows post processing after the templating step
 
     this class introduces the `post_process_html` protocol that can be used to modify
@@ -53,11 +86,10 @@ class PostProcess(Exporter):
         html = self.post_process_html(html) or html
         return html, resources
 
-    def post_process_html(self, body):
-        ...
+    def post_process_html(self, body): ...
 
 
-class A11yExporter(PostProcess, HTMLExporter):
+class A11yExporter(PostProcess):
     """an accessible reference implementation for computational notebooks implemented for ipynb files.
 
     this template provides a flexible screen reader experience with settings to control and customize the reading experience.
@@ -68,16 +100,20 @@ class A11yExporter(PostProcess, HTMLExporter):
         config=True
     )
     axe_url = CUnicode(AXE, help="the remote source for the axe resources.").tag(config=True)
-    include_sa11y = Bool(False, help="include sa11y accessibility authoring tool").tag(config=True)
-    include_settings = Bool(False, help="include configurable accessibility settings dialog.").tag(
+    include_sa11y = Bool(True, help="include sa11y accessibility authoring tool").tag(config=True)
+    include_settings = Bool(True, help="include configurable accessibility settings dialog.").tag(
         config=True
     )
+    # if help is not included the a bunch of aria label get fucked up and we fail
+    # accessibility. if help information isn't included then we'll at least to included
+    # a vocabulary to reference from the aria-labelledby aria-describedby
     include_help = Bool(
-        False, help="include help and supplementary descriptions about notebooks and cells"
+        True, help="include help and supplementary descriptions about notebooks and cells"
     ).tag(config=True)
     include_toc = Bool(
         True, help="collect a table of contents of the headings in the document"
     ).tag(config=True)
+    include_summary = Bool(True, help="collect notebook properties into a summary").tag(config=True)
     wcag_priority = Enum(
         ["AAA", "AA", "A"], "AA", help="the default inital wcag priority to start with"
     ).tag(config=True)
@@ -87,12 +123,26 @@ class A11yExporter(PostProcess, HTMLExporter):
     include_cell_index = Bool(
         True, help="show the ordinal cell index, typically this is ignored from notebooks."
     ).tag(config=True)
-    include_visibility = Bool(False, help="include visibility toggle").tag(config=True)
+    include_visibility = Bool(True, help="include visibility toggle").tag(config=True)
     include_upload = Bool(False, help="include template for uploading new content").tag(config=True)
-    exclude_anchor_links = Bool(True).tag(config=True)
+    allow_run_mode = Bool(False, help="enable buttons for a run mode").tag(config=True)
+    hide_anchor_links = Bool(False).tag(config=True)
+    hidden_anchor_links = Bool(False).tag(config=True)
     code_theme = Enum(list(THEMES), "gh-high", help="an accessible pygments dark/light theme").tag(
         config=True
     )
+    table_pattern = Enum(
+        list(Roles.options),
+        "List",
+        help="the presentation format of the cells to assistive technology",
+    ).tag(config=True)
+    # TF: id love for these definitions to have their own parent class.
+    prompt_in = CUnicode("In").tag(config=True)
+    prompt_out = CUnicode("Out").tag(config=True)
+    prompt_left = CUnicode("[").tag(config=True)
+    prompt_right = CUnicode("]").tag(config=True)
+    validate_nb = Bool(False).tag(config=True)
+    exclude_anchor_links = Bool(True).tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -105,13 +155,16 @@ class A11yExporter(PostProcess, HTMLExporter):
         import html
 
         self.environment.globals.update(json=json, markdown=get_markdown, highlight=highlight)
-        self.environment.filters.update(escape_html=html.escape)
-        self.environment.globals.update(
-            formatter=pygments.formatters,
+        self.environment.filters.update(
+            escape_html=html.escape,
             count_loc=count_loc,
+            count_cell_loc=count_cell_loc,
             count_outputs=count_outputs,
             count_code_cells=count_code_cells,
-            ordered=ordered,
+            is_ordered=is_ordered,
+        )
+        self.environment.globals.update(
+            formatter=pygments.formatters,
             schema=SCHEMA,
             datetime=datetime,
         )
@@ -126,34 +179,57 @@ class A11yExporter(PostProcess, HTMLExporter):
         )
         return c
 
-    def from_notebook_node(self, nb, resources=None, **kw):
-        resources = resources or {}
+    def init_resources(self, resources=None):
+        resources = self._init_resources(resources)
         resources["include_axe"] = self.include_axe
         resources["include_settings"] = self.include_settings
         resources["include_help"] = self.include_help
         resources["include_toc"] = self.include_toc
-        resources["include_visibility"] = self.include_upload
+        resources["include_summary"] = self.include_summary
+        resources["include_visibility"] = self.include_visibility
         resources["include_upload"] = self.include_upload
         resources["wcag_priority"] = self.wcag_priority
         resources["accesskey_navigation"] = self.accesskey_navigation
         resources["code_theme"] = THEMES[self.code_theme]
         resources["axe_url"] = self.axe_url
         resources["include_sa11y"] = self.include_sa11y
+        resources["prompt_in"] = self.prompt_in
+        resources["prompt_out"] = self.prompt_out
+        resources["prompt_left"] = self.prompt_left
+        resources["prompt_right"] = self.prompt_right
+        resources["hidden_anchor_links"] = self.hidden_anchor_links
+        resources["hide_anchor_links"] = self.hide_anchor_links
+        resources["table_pattern"] = getattr(Roles, self.table_pattern)
+        resources["allow_run_mode"] = self.allow_run_mode
+        return resources
 
-        return super().from_notebook_node(nb, resources, **kw)
+    def from_notebook_node(self, nb, resources=None, **kw):
+        # this is trash and needs serious fixing
+
+        return super().from_notebook_node(nb, self.init_resources(resources), **kw)
 
     def post_process_html(self, body):
         """A final pass at the exported html to add table of contents, heading links, and other a11y affordances."""
         soup = soupify(body)
-        describe_main(soup)
         heading_links(soup)
-        details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
-        if details:
-            details.extend(soupify(toc(soup)).body.children)
-            for x in details.select("ul"):
-                x.name = "ol"
-            details.select_one("ol").attrs["aria-labelledby"] = "nb-toc"
+        if self.include_toc:
+            details = soup.select_one("""[aria-labelledby="nb-toc"] details""")
+            if details:
+                if not details.select_one("nav"):
+                    details.append(toc(soup))
         return soup.prettify(formatter="html5")
+
+    def _preprocess(self, nb, resources):
+        nbc = deepcopy(nb)
+        resc = deepcopy(resources)
+
+        for preprocessor in self._preprocessors:
+            nbc, resc = preprocessor(nbc, resc)
+
+        if self.validate_nb:
+            self._validate_preprocessor(nbc, preprocessor)
+
+        return nbc, resc
 
 
 class SectionExporter(A11yExporter):
@@ -203,7 +279,7 @@ def highlight(code, lang="python", attrs=None, experimental=True):
     lang = lang or pygments.lexers.get_lexer_by_name(lang or "python")
 
     formatter = pygments.formatters.get_formatter_by_name(
-        "html", debug_token_types=True, title=f"{lang} code", wrapcode=True
+        "html", debug_token_types=False, title=f"{lang} code", wrapcode=True
     )
     try:
         return pygments.highlight(
@@ -220,43 +296,63 @@ def soupify(body: str) -> BeautifulSoup:
     return BeautifulSoup(body, features="html5lib")
 
 
-def mdtoc(html):
+def toc(html):
     """Create a table of contents in markdown that will be converted to html"""
-    import io
 
-    toc = io.StringIO()
-    for header in html.select("#cells :is(h1,h2,h3,h4,h5,h6)"):
+    toc = BeautifulSoup(features="html.parser")
+    toc.append(nav := toc.new_tag("nav"))
+    nav.append(ol := toc.new_tag("ol"))
+    last_level = 1
+    headers = set()
+    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6)"):
+        if header in headers:
+            continue
+        headers.add(header)
         id = header.attrs.get("id")
         if not id:
-            from slugify import slugify
-
-            id = slugify(header.string)
-
+            continue
         # there is missing logistics for managely role=heading
         # adding code group semantics will motivate this addition
-
         level = int(header.name[-1])
-        toc.write("  " * (level - 1) + f"* [{header.string}](#{id})\n")
-    return toc.getvalue()
-
-
-def toc(html):
-    """Create an html table of contents"""
-    return get_markdown(mdtoc(html))
+        if last_level > level:
+            for l in range(level, last_level):
+                last_level -= 1
+                ol = ol.parent.parent
+        elif last_level < level:
+            for l in range(last_level, level):
+                last_level += 1
+                ol.append(li := toc.new_tag("li"))
+                li.append(ol := toc.new_tag("ol"))
+        ol.append(li := toc.new_tag("li"))
+        li.append(a := toc.new_tag("a"))
+        pilcrow = header.select_one(".pilcrow")
+        text = header.text
+        if pilcrow:
+            text = text.rstrip(pilcrow.text)
+        a.append(text)
+        a.attrs.update(href=f"#{id}")
+    return toc
 
 
 def heading_links(html):
     """Convert headings into links"""
-    for header in html.select(":is(h1,h2,h3,h4,h5,h6):not([role])"):
+    for header in html.select(".cell :is(h1,h2,h3,h4,h5,h6):not([role])"):
         id = header.attrs.get("id")
         if not id:
             from slugify import slugify
 
-            id = slugify(header.string)
+            if header.text:
+                id = slugify(header.text)
+            else:
+                continue
 
-        link = soupify(f"""<a href="#{id}">{header.string}</a>""").body.a
+        
+        a = html.new_tag("a")
+        a.attrs["href"] = F"#{id}"
+        a.extend(header.children)
         header.clear()
-        header.append(link)
+        header.attrs.update(id=id)
+        header.append(a)
 
 
 # * navigate links
@@ -290,21 +386,12 @@ def count_code_cells(nb):
     return len([None for x in nb.cells if x["cell_type"] == "code"])
 
 
-def describe_main(soup):
-    """Add REFIDs to aria-describedby"""
-    x = soup.select_one("#toc > details > summary")
-    if x:
-        x.attrs["aria-describedby"] = soup.select_one("main").attrs[
-            "aria-describedby"
-        ] = "nb-cells-count-label nb-cells-label nb-code-cells nb-code-cells-label nb-ordered nb-loc nb-loc-label"
-
-
-def ordered(nb) -> str:
+def is_ordered(nb) -> str:
     """Measure if the notebook is ordered"""
     start = 0
     for cell in nb.cells:
         if cell["cell_type"] == "code":
-            if any("".join(cell.source).strip()):
+            if not count_cell_loc(cell):
                 continue
             start += 1
             if start != cell["execution_count"] and start:

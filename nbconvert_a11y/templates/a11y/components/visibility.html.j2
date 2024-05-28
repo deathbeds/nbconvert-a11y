@@ -1,4 +1,4 @@
-{% from "a11y/components/core.html.j2" import activity_log %}
+{% from "a11y/components/core.html.j2" import activity_log, checkbox %}
 
 {% macro header_row(names) %}
 <tr>
@@ -27,31 +27,39 @@
 <dialog id="nb-visibility-dialog">
     <form name="visibility">
         <button formmethod="dialog">Close</button>
-        <table aria-label="notebook cell visibility" role="grid">
-            <tbody>
-                {# the table head is used to provide controls #}
-                {# it hints at a configurable pattern for showing different features. #}
-                {# there should be controls for each cell type here, and cell types can be
-                added. #}
-                {% set labels = "index execution_count !cell_type source outputs !metadata !toolbar !loc" %}
-                {{header_row(labels)}}
-                {{checkbox_row("code", labels)}}
-                {{checkbox_row("markdown", labels)}}
-                {{checkbox_row("raw", labels)}}
-            </tbody>
-        </table>
+        {{checkbox("visually hide", False)}}
+        {{checkbox("accessibility audit", False)}}
+        <fieldset disabled>
+            <legend>visibility</legend>
+            <table aria-label="notebook cell visibility" role="grid">
+                <tbody>
+                    {# the table head is used to provide controls #}
+                    {# it hints at a configurable pattern for showing different features. #}
+                    {# there should be controls for each cell type here, and cell types can be
+                    added. #}
+                    {% set labels = "index execution_count !cell_type source outputs !metadata !toolbar !loc" %}
+                    {{header_row(labels)}}
+                    {{checkbox_row("code", labels)}}
+                    {{checkbox_row("markdown", labels)}}
+                    {{checkbox_row("raw", labels)}}
+                </tbody>
+
+            </table>
+        </fieldset>
     </form>
     <form name="expanded">
-        <button formmethod="dialog">Close</button>
-        <table role="grid">
-            <tbody>
-                {% set labels = "cell source outputs" %}
-                {{header_row(labels)}}
-                {{checkbox_row("code", labels)}}
-                {{checkbox_row("markdown", labels)}}
-                {{checkbox_row("raw", labels)}}
-            </tbody>
-        </table>
+        <fieldset disabled>
+            <legend>expand/collapse</legend>
+            <table role="grid">
+                <tbody>
+                    {% set labels = "cell source outputs" %}
+                    {{header_row(labels)}}
+                    {{checkbox_row("code", labels)}}
+                    {{checkbox_row("markdown", labels)}}
+                    {{checkbox_row("raw", labels)}}
+                </tbody>
+            </table>
+        </fieldset>
     </form>
     {{activity_log()}}
 

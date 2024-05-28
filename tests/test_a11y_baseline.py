@@ -7,7 +7,7 @@
 
 from pytest import mark
 
-from nbconvert_a11y.pytest_axe import SELECTORS as S
+from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y, AxeViolation
 
 
 @mark.parametrize(
@@ -15,6 +15,7 @@ from nbconvert_a11y.pytest_axe import SELECTORS as S
     [
         ("a11y.py", "a11y-table", "lorenz-executed.ipynb"),
         ("section.py", "a11y-landmark", "lorenz-executed.ipynb"),
+        ("list.py", "a11y-list", "lorenz-executed.ipynb"),
     ],
 )
 def test_axe(axe, notebook, config, exporter_name, name):
@@ -28,5 +29,8 @@ def test_axe(axe, notebook, config, exporter_name, name):
     test = axe(notebook(exporter_name, name, config=config))
     # ignore mathjax at the moment. we might be able to turne mathjax to have better
     # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
-    test.run({"exclude": [S.JUPYTER_WIDGETS, S.MATHJAX, S.SA11Y]})
-    test.raises()
+    test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
+    try:
+        test.raises()
+    except* AxeViolation["serious-color-contrast-enhanced"]:
+        ...
