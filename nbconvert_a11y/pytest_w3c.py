@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import socket
+import subprocess
 import sys
 import time
 import uuid
@@ -89,7 +90,7 @@ class ValidatorViolation(Violation):
                 id = f"""{message["type"]}-{msg.strip()}"""
         else:
             id = f"""{message["type"]}-{msg.strip()}"""
-            msg = message["extract"]
+            msg = message.get("extract")
         return cls.map.setdefault(id, type(id, t, {}))
 
 
@@ -148,6 +149,8 @@ def validate_html_file(a_vnu_server_url: str) -> TVnuValidator:
         return res.json()
 
     return post
+
+
 
 
 @pytest.fixture(scope="session")
@@ -310,3 +313,9 @@ def get_an_unused_port() -> Callable[[], int]:
     port = s.getsockname()[1]
     s.close()
     return port
+
+
+def validate_html(html: str) -> TVnuResults:
+    cmd = [get_vnu_path(), "--stdout", "--format", "json", "--exit-zero-always", "-"]
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return ValidatorResults(loads(p.communicate(input=html.encode())[0]))
