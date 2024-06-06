@@ -26,7 +26,7 @@ class JS:
     [
         "[aria-controls=nb-settings]",
         "[aria-controls=nb-help]",
-        param("[aria-controls=nb-visibility-dialog]", marks=mark.xfail(reason=NEEDS_WORK)),
+        param("[aria-controls=nb-visibility-dialog]", marks=NEEDS_WORK),
     ],
 )
 def test_dialogs(lorenz, dialog):
