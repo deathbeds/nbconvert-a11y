@@ -72,7 +72,7 @@ a11y-landmark = "nbconvert_a11y.exporter:SectionExporter"
 a11y-list = "nbconvert_a11y.exporter:ListExporter"
 
 [project.entry-points.pytest11]
-axe = "nbconvert_a11y.pytest_axe"
+axe = "nbconvert_a11y.axe.pytest_axe"
 vnu = "nbconvert_a11y.pytest_w3c"
 
 [tool.hatch.build.targets.wheel.shared-data]

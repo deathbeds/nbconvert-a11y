@@ -20,25 +20,14 @@ from pathlib import Path
 from shlex import quote, split
 from subprocess import CalledProcessError, check_output
 from time import sleep, time
+from playwright.sync_api import Page
 from typing import Any
 
-import exceptiongroup
 from pytest import fixture
 
-from nbconvert_a11y.exceptions import Violation, Violations
-
-
-# selectors for regions of the notebook
-class SELECTORS:
-    """ "selectors for notebook and third party components in notebooks."""
-
-    # these should be moved to a config test.
-    MATHJAX = "[id^=MathJax]"
-    JUPYTER_WIDGETS = ".jupyter-widgets"
-    OUTPUTS = ".jp-OutputArea-output"
-    NO_ALT = "img:not([alt])"
-    PYGMENTS = ".highlight"
-    SA11Y = "sa11y-control-panel"
+from .async_axe import CHECK_FOR_AXE, RUN_AXE
+from .base_axe_exceptions import AxeExceptions
+from ..exceptions import Violation, Violations
 
 
 # the default test tags start with the most strict conditions.
@@ -136,6 +125,7 @@ class Results(Base):
         if exc:
             raise exc
 
+
 class AxeViolation(Violation):
     id: str = dataclasses.field(repr=False)
     impact: str | None = dataclasses.field(repr=False)
@@ -176,6 +166,7 @@ class AxeViolation(Violation):
             if len(key) > N:
                 key = key[:N] + "..."
             self.elements[key].extend(node["target"])
+
 
 class AxeViolations(Violations):
     exception = AxeViolation
@@ -305,11 +296,6 @@ class AxeResults(Results):
         return AxeViolations.from_violations(self.data)
 
 
-@lru_cache(1)
-def get_axe():
-    return (get_npm_directory("axe-core") / "axe.js").read_text()
-
-
 @fixture()
 def axe(page):
     def go(url, **axe_config):
@@ -318,6 +304,11 @@ def axe(page):
         return axe
 
     return go
+
+
+@lru_cache(1)
+def get_axe():
+    return (get_npm_directory("axe-core") / "axe.js").read_text()
 
 
 def get_npm_directory(package, data=False):
@@ -329,3 +320,19 @@ def get_npm_directory(package, data=False):
     if data:
         return info
     return Path(info.get("dependencies").get(package).get("path"))
+
+
+def pw_axe(page, selector=None, **config):
+    if not page.evaluate(CHECK_FOR_AXE):
+        page.evaluate(get_axe())
+    return page.evaluate(RUN_AXE.format(selector and dumps(selector) or "document", dumps(config)))
+
+
+def pw_test_axe(page, selector=None, **config):
+    return AxeExceptions.from_test(pw_axe(page, selector, **config))
+
+
+# attach new attributes to the synchronous page
+
+Page.axe = pw_axe
+Page.test_axe = pw_test_axe
