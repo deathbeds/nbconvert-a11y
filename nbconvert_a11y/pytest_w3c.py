@@ -21,7 +21,7 @@ import exceptiongroup
 import pytest
 import requests
 
-from nbconvert_a11y.pytest_axe import Collector, Results, Violation
+from nbconvert_a11y.axe.pytest_axe import Collector, Results, Violation
 
 HERE = Path(__file__).parent
 

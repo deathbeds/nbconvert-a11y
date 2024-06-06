@@ -13,13 +13,9 @@ from pathlib import Path
 from subprocess import PIPE, check_output
 from playwright.async_api import Page
 
-from .base_axe_exceptions import AxeExceptions
+from nbconvert_a11y.axe.types import AxeOptions
 
-OUTER_HTML = "(node) => node.outerHTML"
-HTML_OUTER_HTML = """document.querySelector("html").outerHTML"""
-CHECK_FOR_AXE = """window.hasOwnProperty("axe")"""
-RUN_AXE = """window.axe.run({}, {})"""
-VNU_TEST = "vnu --format json -"
+from .base_axe_exceptions import AxeExceptions
 
 
 class JS:
@@ -27,6 +23,9 @@ class JS:
     HTML_OUTER_HTML = """document.querySelector("html").outerHTML"""
     CHECK_FOR_AXE = """window.hasOwnProperty("axe")"""
     RUN_AXE = """window.axe.run({}, {})"""
+
+
+class SH:
     VNU_TEST = "vnu --format json -"
 
 
@@ -39,9 +38,14 @@ def get_axe() -> str:
 
 async def pw_axe(page: Page, selector=None, **config):
     # we should be able to type output
-    if not (await page.evaluate(CHECK_FOR_AXE)):
+    if not (await page.evaluate(JS.CHECK_FOR_AXE)):
         await page.evaluate(get_axe())
-    return await page.evaluate(RUN_AXE.format(selector or "document", dumps(config)))
+    return await page.evaluate(
+        JS.RUN_AXE.format(
+            selector or "document",
+            dumps(AxeOptions(**config).dict()),
+        )
+    )
 
 
 async def pw_test_axe(page: Page, selector=None, **config):
@@ -50,7 +54,7 @@ async def pw_test_axe(page: Page, selector=None, **config):
 
 async def validate_html(html: str) -> dict:
     # we should be able to type output
-    process = await create_subprocess_shell(VNU_TEST, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    process = await create_subprocess_shell(SH.VNU_TEST, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     _, stderr = await process.communicate(html.encode())
     return loads(stderr)
 
@@ -59,25 +63,8 @@ async def pw_validate_html(page):
     return await validate_html(await page.outer_html())
 
 
-async def pw_screenshots(page, *selectors):
-    from IPython.display import Image
-
-    shots = {}
-    for selector in selectors:
-        shots.setdefault(selector, [])
-        async for shot in _pw_selected(page.locator(selector)):
-            shots[selector].append(Image(data=shot))
-    return shots
-
-
-async def _pw_selected(selected):
-    for nth in range(await selected.count()):
-        select = selected.nth(nth)
-        yield await select.screenshot()
-
-
 async def pw_outer_html(page: Page):
-    return await page.evaluate(HTML_OUTER_HTML)
+    return await page.evaluate(JS.HTML_OUTER_HTML)
 
 
 async def pw_accessibility_tree(page: Page):
@@ -87,6 +74,5 @@ async def pw_accessibility_tree(page: Page):
 Page.vnu = pw_validate_html
 Page.axe = pw_axe
 Page.test_axe = pw_test_axe
-Page.screenshots = pw_screenshots
 Page.outer_html = pw_outer_html
 Page.aom = pw_accessibility_tree

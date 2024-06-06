@@ -25,77 +25,10 @@ from typing import Any
 
 from pytest import fixture
 
-from .async_axe import CHECK_FOR_AXE, RUN_AXE
+from .async_axe import JS
 from .base_axe_exceptions import AxeExceptions
 from ..exceptions import Violation, Violations
-
-
-# the default test tags start with the most strict conditions.
-# end-users can refine the TEST_TAGS they choose in their axe configuration.
-# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#axe-core-tags
-TEST_TAGS = [
-    "ACT",
-    "best-practice",
-    "experimental",
-    "wcag2a",
-    "wcag2aa",
-    "wcag2aaa",
-    "wcag21a",
-    "wcag21aa",
-    "wcag22aa",
-    "TTv5",
-]
-
-
-class Base:
-    """base class for exceptions and models"""
-
-    def __init_subclass__(cls) -> None:
-        dataclasses.dataclass(cls)
-
-    def dict(self):
-        return {k: v for k, v in dataclasses.asdict(self).items() if v is not None}
-
-    def dump(self):
-        return dumps(self.dict())
-
-
-# axe configuration should be a fixture.
-# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#api-name-axeconfigure
-class AxeConfigure(Base):
-    """axe configuration model"""
-
-    branding: str = None
-    reporter: str = None
-    checks: list = None
-    rules: list = None
-    standards: list = None
-    disableOtherRules: bool = None
-    local: str = None
-    axeVersion: str = None
-    noHtml: bool = False
-    allowedOrigins: list = dataclasses.field(default_factory=["<same_origin>"].copy)
-
-
-# axe options should be a fixture
-# https://github.com/dequelabs/axe-core/blob/develop/doc/API.md#options-parameter
-class AxeOptions(Base):
-    """axe options model"""
-
-    runOnly: list = dataclasses.field(default_factory=TEST_TAGS.copy)
-    rules: list = None
-    reporter: str = None
-    resultTypes: Any = None
-    selectors: bool = None
-    ancestry: bool = None
-    xpath: bool = None
-    absolutePaths: bool = None
-    iframes: bool = True
-    elementRef: bool = None
-    frameWaitTime: int = None
-    preload: bool = None
-    performanceTimer: bool = None
-    pingWaitTime: int = None
+from .types import AxeConfigure, AxeOptions, Base
 
 
 @dataclasses.dataclass
@@ -229,68 +162,6 @@ class Axe(Collector):
                 raise exception
 
 
-@dataclasses.dataclass
-class AsyncAxe(Axe, AsyncExitStack):
-    """an axe collector that works with async playwright
-
-    we need to run playwright in sync mode for tests, but
-    we can't run playwright in sync mode in a notebook because
-    it is executed in an event loop. this class adds
-    compatability for async playwright usage for debugging.
-    """
-
-    playwright: Any = None
-    browser: Any = None
-    snapshots: list = None
-
-    def __post_init__(self):
-        AsyncExitStack.__init__(self)
-
-    async def configure(self, **config):
-        await self.page.evaluate(f"window.axe.configure({AxeConfigure(**config).dump()})")
-        self.configured = True
-        return self
-
-    async def __aenter__(self):
-        import playwright.async_api
-
-        self.playwright = await self.enter_async_context(playwright.async_api.async_playwright())
-        self.browser = await self.playwright.chromium.launch()
-        self.page = await self.browser.new_page()
-        await self.setup()
-
-        return self
-
-    async def __aexit__(self, *e):
-        await self.browser.close()
-
-    async def setup(self):
-        url = self.url
-        if isinstance(url, Path):
-            url = url.absolute().as_uri()
-        await self.page.goto(url)
-        await self.page.evaluate(get_axe())
-        return self
-
-    async def run(self, test=None, options=None, wait=None):
-        if not self.configured:
-            await self.configure()
-        if wait is not None:
-            await asyncio.sleep(wait)
-        self.results = AxeResults(
-            await self.page.evaluate(
-                f"""window.axe.run({test and dumps(test) or "document"}, {AxeOptions(**options or {}).dump()})"""
-            )
-        )
-        return self
-
-    async def screenshot(self, *args, **kwargs):
-        if not self.snapshots:
-            self.snapshots = []
-        self.snapshots.append(await self.page.screenshot(*args, **kwargs))
-        return self.snapshots[-1]
-
-
 class AxeResults(Results):
     def exception(self):
         return AxeViolations.from_violations(self.data)
@@ -322,14 +193,25 @@ def get_npm_directory(package, data=False):
     return Path(info.get("dependencies").get(package).get("path"))
 
 
-def pw_axe(page, selector=None, **config):
-    if not page.evaluate(CHECK_FOR_AXE):
+def pw_axe(page, include=None, exclude=None, **config):
+    if not page.evaluate(JS.CHECK_FOR_AXE):
         page.evaluate(get_axe())
-    return page.evaluate(RUN_AXE.format(selector and dumps(selector) or "document", dumps(config)))
+
+    if include:
+        if exclude:
+            ctx = dumps(dict(include=include, exclude=exclude))
+        else:
+            ctx = dumps(include)
+    elif exclude:
+        ctx = dumps(dict(exclude=exclude))
+    else:
+        ctx = "document"
+
+    return page.evaluate(JS.RUN_AXE.format(ctx, dumps(AxeOptions(**config).dict())))
 
 
-def pw_test_axe(page, selector=None, **config):
-    return AxeExceptions.from_test(pw_axe(page, selector, **config))
+def pw_test_axe(page, include=None, **config):
+    return AxeExceptions.from_test(pw_axe(page, include, **config))
 
 
 # attach new attributes to the synchronous page

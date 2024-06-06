@@ -1,6 +1,7 @@
 from time import sleep
 from pytest import fixture
 
+from nbconvert_a11y.axe.axe_exceptions import color_contrast_enhanced
 from nbconvert_a11y.exporter import THEMES
 from tests.conftest import CONFIGURATIONS, NOTEBOOKS
 from playwright.sync_api import expect
@@ -25,7 +26,7 @@ def test_dark_themes(lorenz):
     _test_no_textarea(lorenz)
     # verify the themes are consistent
     assert lorenz.locator(f"#nb-light-highlight").get_attribute("media") == "not screen"
-    assert lorenz.test_axe(dict(include=[".nb-source"])).xfail()
+    assert lorenz.test_axe(dict(include=[".nb-source"])).xfail(color_contrast_enhanced)
     # accessible pygments disclsoes that we should expect some color contrast failures on some themes.
     # there isnt much code which might not generate enough conditions to create color contrast issues.
 
