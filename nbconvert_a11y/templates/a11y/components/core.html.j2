@@ -33,7 +33,7 @@ at some point effort should be put into separating context dependent and indepen
 <label id="nb-{{name}}-select">{{title}}
     <select name="{{name}}">
         {% for k, v in values.items() %}
-        <option value="{{v}}" {% if k==default %} selected{% endif %}>{{k}}</option>
+        <option value="{{v}}" {% if v==default %} selected{% endif %}>{{k}}</option>
         {% endfor %}
         {% for k, v in (disabled or {}).items() %}
         <option value="{{v}}" disabled>{{k}}</option>

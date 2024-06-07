@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from nbconvert_a11y.pytest_w3c import ValidatorViolation, raise_if_errors
+from nbconvert_a11y.pytest_w3c import ValidatorViolation, raise_if_errors, validate_html
+from nbconvert_a11y.test_utils import get_exporter
 from tests.test_smoke import CONFIGURATIONS, get_target_html
 
 HERE = Path(__file__).parent
@@ -70,12 +71,9 @@ def test_baseline_w3c_paths(html: Path, validate_html_path: "TVnuValidator") -> 
     except* ValidatorViolation["error-An “img” element must have an “alt” attribute, except under certain conditions. For details, consult guidance on providing text alternatives for images."]:
         ...
 
-def test_a11y_max(notebook, validate_html_url):
-    exc = (
-        validate_html_url(notebook("a11y", "lorenz-executed.ipynb", config="a11y.py"))
-        .run()
-        .exception()
-    )
+def test_a11y_max():
+    html = get_exporter(CONFIGURATIONS / "a11y.py").from_filename(NOTEBOOKS / "lorenz-executed.ipynb")[0]
+    exc = validate_html(html).exception()
     try:
         raise exc
     except* ValidatorViolation["info"]:
@@ -86,8 +84,10 @@ def test_a11y_max(notebook, validate_html_url):
         ...
 
 
-def xfail_default(notebook, validate_html_url):
-    exc = validate_html_url(notebook("html", "lorenz-executed.ipynb")).run().exception()
+def xfail_default():
+    html = get_exporter("html").from_filename(NOTEBOOKS / "lorenz-executed.ipynb")[0]
+    exc = validate_html(html).exception()
+
     try:
         raise exc
     except* ValidatorViolation["error-Unknown pseudo-element or pseudo-class “:horizontal”"]:
@@ -106,8 +106,9 @@ def xfail_default(notebook, validate_html_url):
         pytest.xfail("the default nbconvert template is non-conformant.")
 
 
-def xfail_a11y_min(notebook, validate_html_url):
-    exc = validate_html_url(notebook()).run().exception()
+def xfail_a11y_min():
+    html = get_exporter("a11y").from_filename(NOTEBOOKS / "lorenz-executed.ipynb")[0]
+    exc = validate_html(html).exception()
     try:
         raise exc
     except* ValidatorViolation[

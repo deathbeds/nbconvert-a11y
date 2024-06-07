@@ -1,3 +1,9 @@
+.hypothesis
+.pixi
+.local-browsers
+
+
+dist/
 __pycache__
 .#*
 .doit.*

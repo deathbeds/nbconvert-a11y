@@ -4,21 +4,16 @@
 * test the accessibility of nbconvert-a11y dialogs
 """
 
-
 from pytest import mark
 
-from nbconvert_a11y.pytest_axe import JUPYTER_WIDGETS, MATHJAX, SA11Y
+from nbconvert_a11y.axe.axe_exceptions import color_contrast_enhanced
+from nbconvert_a11y.test_utils import SELECTORS as S
+from conftest import NOTEBOOKS, CONFIGURATIONS
 
 
-@mark.parametrize(
-    "config,exporter_name,name",
-    [
-        ("a11y.py", "a11y-table", "lorenz-executed.ipynb"),
-        ("section.py", "a11y-landmark", "lorenz-executed.ipynb"),
-        ("list.py", "a11y-list", "lorenz-executed.ipynb"),
-    ],
-)
-def test_axe(axe, notebook, config, exporter_name, name):
+@mark.parametrize("config", ["a11y.py", "section.py", "list.py"])
+@mark.parametrize("nb", ["lorenz-executed.ipynb"])
+def test_axe(page, config, nb):
     """Verify the baseline templates satisify all rules update AAA.
 
     any modifications to the template can only degrade accessibility.
@@ -26,8 +21,6 @@ def test_axe(axe, notebook, config, exporter_name, name):
     up without automation. these surface protections allow more manual testing
     or verified conformations of html.
     """
-    test = axe(notebook(exporter_name, name, config=config))
-    # ignore mathjax at the moment. we might be able to turne mathjax to have better
-    # accessibility. https://github.com/Iota-School/notebooks-for-all/issues/81
-    test.run({"exclude": [JUPYTER_WIDGETS, MATHJAX, SA11Y]})
-    test.raises()
+
+    page.from_notebook(NOTEBOOKS / nb, CONFIGURATIONS / config)
+    assert page.test_axe(exclude=S.THIRD_PARTY).xfail(color_contrast_enhanced)

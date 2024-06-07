@@ -8,7 +8,6 @@ import pytest
 from flask import Flask, request, url_for
 
 import nbconvert.nbconvertapp
-from nbconvert import get_exporter
 
 collect_ignore = ["notebooks/lorenz.ipynb"]
 HERE = Path(__file__).parent
@@ -17,6 +16,7 @@ NOTEBOOKS = HERE / "notebooks"
 EXPORTS = HERE / "exports"
 HTML = EXPORTS / "html"
 CI = environ.get("CI")
+
 
 TestLoader.testMethodPrefix = "test", "xfail"
 
@@ -72,12 +72,12 @@ def app():
     return make_app()
 
 
-@pytest.fixture(scope="session")
-def notebook(live_server):
-    def url(exporter="a11y", name="lorenz-executed.ipynb", **qs):
-        return url_for("nb", exporter=exporter, name=name, **qs, _external=True)
+# @pytest.fixture(scope="session")
+# def notebook(live_server):
+#     def url(exporter="a11y", name="lorenz-executed.ipynb", **qs):
+#         return url_for("nb", exporter=exporter, name=name, **qs, _external=True)
 
-    return url
+#     return url
 
 
 if __name__ == "__main__":

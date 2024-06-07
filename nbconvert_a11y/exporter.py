@@ -146,7 +146,7 @@ class A11yExporter(PostProcess):
     exclude_anchor_links = Bool(True).tag(config=True)
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        super().__init__()
         from nbconvert.filters import strings
 
         for k, v in vars(strings).items():

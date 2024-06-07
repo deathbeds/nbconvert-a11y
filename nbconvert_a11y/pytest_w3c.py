@@ -1,6 +1,7 @@
 # requires node
 # requires jvm
 import collections
+import dataclasses
 import functools
 import itertools
 import operator
@@ -8,6 +9,7 @@ import os
 import re
 import shutil
 import socket
+import subprocess
 import sys
 import time
 import uuid
@@ -21,7 +23,37 @@ import exceptiongroup
 import pytest
 import requests
 
-from nbconvert_a11y.pytest_axe import Collector, Results, Violation
+from .exceptions import Violation
+from .axe.types import Base
+
+
+@dataclasses.dataclass
+class Collector(Base):
+    """the base collector class for accessibility and bulk testing batteries."""
+
+    url: str = None
+    results: Any = None
+
+    def configure(self):
+        return self
+
+    def exception(self):
+        return self.results.exception()
+
+    def raises(self):
+        exc = self.exception()
+        if exc:
+            raise exc
+
+
+class Results(Base):
+    data: Any
+
+    def raises(self):
+        exc = self.exception()
+        if exc:
+            raise exc
+
 
 HERE = Path(__file__).parent
 
@@ -89,7 +121,7 @@ class ValidatorViolation(Violation):
                 id = f"""{message["type"]}-{msg.strip()}"""
         else:
             id = f"""{message["type"]}-{msg.strip()}"""
-            msg = message["extract"]
+            msg = message.get("extract")
         return cls.map.setdefault(id, type(id, t, {}))
 
 
@@ -310,3 +342,9 @@ def get_an_unused_port() -> Callable[[], int]:
     port = s.getsockname()[1]
     s.close()
     return port
+
+
+def validate_html(html: str) -> TVnuResults:
+    cmd = [get_vnu_path(), "--stdout", "--format", "json", "--exit-zero-always", "-"]
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return ValidatorResults(loads(p.communicate(input=html.encode())[0]))
