@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/media/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/nbconvert_html5/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/readme/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/exports/configs/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://iota-school.github.io/notebooks-for-all/exports/notebooks/</loc>
+         <lastmod>2024-05-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+</urlset>
