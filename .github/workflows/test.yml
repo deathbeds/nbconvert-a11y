@@ -105,6 +105,8 @@ jobs:
     name: publish the mkdocs build to github pages
     needs: [test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: checkout repo
         uses: actions/checkout@v3

@@ -1,0 +1,470 @@
+{
+  "$ref": "#/definitions/IAxe",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "IAxe": {
+      "additionalProperties": false,
+      "properties": {
+        "options": {
+          "$ref": "#/definitions/axe.RunOptions"
+        },
+        "results": {
+          "$ref": "#/definitions/axe.AxeResults"
+        }
+      },
+      "required": [
+        "results",
+        "options"
+      ],
+      "type": "object"
+    },
+    "axe.AxeResults": {
+      "additionalProperties": false,
+      "description": "Object for axe Results",
+      "properties": {
+        "inapplicable": {
+          "items": {
+            "$ref": "#/definitions/axe.Result"
+          },
+          "type": "array"
+        },
+        "incomplete": {
+          "items": {
+            "$ref": "#/definitions/axe.Result"
+          },
+          "type": "array"
+        },
+        "passes": {
+          "items": {
+            "$ref": "#/definitions/axe.Result"
+          },
+          "type": "array"
+        },
+        "testEngine": {
+          "$ref": "#/definitions/axe.TestEngine"
+        },
+        "testEnvironment": {
+          "$ref": "#/definitions/axe.TestEnvironment"
+        },
+        "testRunner": {
+          "$ref": "#/definitions/axe.TestRunner"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "toolOptions": {
+          "$ref": "#/definitions/axe.RunOptions"
+        },
+        "url": {
+          "type": "string"
+        },
+        "violations": {
+          "items": {
+            "$ref": "#/definitions/axe.Result"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "inapplicable",
+        "incomplete",
+        "passes",
+        "testEngine",
+        "testEnvironment",
+        "testRunner",
+        "timestamp",
+        "toolOptions",
+        "url",
+        "violations"
+      ],
+      "type": "object"
+    },
+    "axe.BaseSelector": {
+      "type": "string"
+    },
+    "axe.CheckResult": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {},
+        "id": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "relatedNodes": {
+          "items": {
+            "$ref": "#/definitions/axe.RelatedNode"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "impact",
+        "message",
+        "data"
+      ],
+      "type": "object"
+    },
+    "axe.CrossTreeSelector": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/axe.BaseSelector"
+        },
+        {
+          "$ref": "#/definitions/axe.ShadowDomSelector"
+        }
+      ]
+    },
+    "axe.ImpactValue": {
+      "enum": [
+        "minor",
+        "moderate",
+        "serious",
+        "critical",
+        null
+      ],
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "axe.MultiArray<axe.BaseSelector>": {
+      "items": {
+        "$ref": "#/definitions/axe.BaseSelector"
+      },
+      "minItems": 2,
+      "type": "array"
+    },
+    "axe.NodeResult": {
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "items": {
+            "$ref": "#/definitions/axe.CheckResult"
+          },
+          "type": "array"
+        },
+        "ancestry": {
+          "$ref": "#/definitions/axe.UnlabelledFrameSelector"
+        },
+        "any": {
+          "items": {
+            "$ref": "#/definitions/axe.CheckResult"
+          },
+          "type": "array"
+        },
+        "failureSummary": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "impact": {
+          "$ref": "#/definitions/axe.ImpactValue"
+        },
+        "none": {
+          "items": {
+            "$ref": "#/definitions/axe.CheckResult"
+          },
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/definitions/axe.UnlabelledFrameSelector"
+        },
+        "xpath": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "html",
+        "target",
+        "any",
+        "all",
+        "none"
+      ],
+      "type": "object"
+    },
+    "axe.RelatedNode": {
+      "additionalProperties": false,
+      "properties": {
+        "ancestry": {
+          "$ref": "#/definitions/axe.UnlabelledFrameSelector"
+        },
+        "html": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/definitions/axe.UnlabelledFrameSelector"
+        },
+        "xpath": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "html",
+        "target"
+      ],
+      "type": "object"
+    },
+    "axe.ReporterVersion": {
+      "enum": [
+        "v1",
+        "v2",
+        "raw",
+        "raw-env",
+        "no-passes"
+      ],
+      "type": "string"
+    },
+    "axe.Result": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        },
+        "helpUrl": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "impact": {
+          "$ref": "#/definitions/axe.ImpactValue"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/definitions/axe.NodeResult"
+          },
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "$ref": "#/definitions/axe.TagValue"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "description",
+        "help",
+        "helpUrl",
+        "id",
+        "tags",
+        "nodes"
+      ],
+      "type": "object"
+    },
+    "axe.RuleObject": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "type": "object"
+      },
+      "type": "object"
+    },
+    "axe.RunOnly": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/axe.RunOnlyType"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/axe.TagValue"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "values"
+      ],
+      "type": "object"
+    },
+    "axe.RunOnlyType": {
+      "enum": [
+        "rule",
+        "rules",
+        "tag",
+        "tags"
+      ],
+      "type": "string"
+    },
+    "axe.RunOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "absolutePaths": {
+          "type": "boolean"
+        },
+        "ancestry": {
+          "type": "boolean"
+        },
+        "elementRef": {
+          "type": "boolean"
+        },
+        "frameWaitTime": {
+          "type": "number"
+        },
+        "iframes": {
+          "type": "boolean"
+        },
+        "performanceTimer": {
+          "type": "boolean"
+        },
+        "pingWaitTime": {
+          "type": "number"
+        },
+        "preload": {
+          "type": "boolean"
+        },
+        "reporter": {
+          "$ref": "#/definitions/axe.ReporterVersion"
+        },
+        "resultTypes": {
+          "items": {
+            "$ref": "#/definitions/axe.resultGroups"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "$ref": "#/definitions/axe.RuleObject"
+        },
+        "runOnly": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/axe.RunOnly"
+            },
+            {
+              "items": {
+                "$ref": "#/definitions/axe.TagValue"
+              },
+              "type": "array"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "selectors": {
+          "type": "boolean"
+        },
+        "xpath": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "axe.ShadowDomSelector": {
+      "$ref": "#/definitions/axe.MultiArray%3Caxe.BaseSelector%3E"
+    },
+    "axe.TagValue": {
+      "type": "string"
+    },
+    "axe.TestEngine": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "type": "object"
+    },
+    "axe.TestEnvironment": {
+      "additionalProperties": false,
+      "properties": {
+        "orientationAngle": {
+          "type": "number"
+        },
+        "orientationType": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "windowHeight": {
+          "type": "number"
+        },
+        "windowWidth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "userAgent",
+        "windowWidth",
+        "windowHeight"
+      ],
+      "type": "object"
+    },
+    "axe.TestRunner": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "axe.UnlabelledFrameSelector": {
+      "items": {
+        "$ref": "#/definitions/axe.CrossTreeSelector"
+      },
+      "type": "array"
+    },
+    "axe.resultGroups": {
+      "enum": [
+        "inapplicable",
+        "passes",
+        "incomplete",
+        "violations"
+      ],
+      "type": "string"
+    }
+  }
+}
