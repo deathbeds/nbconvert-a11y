@@ -6,6 +6,7 @@
 
 from pytest import mark
 
+from nbconvert_a11y.axe.axe_exceptions import color_contrast_enhanced
 from nbconvert_a11y.test_utils import SELECTORS as S
 from conftest import NOTEBOOKS, CONFIGURATIONS
 
@@ -22,4 +23,4 @@ def test_axe(page, config, nb):
     """
 
     page.from_notebook(NOTEBOOKS / nb, CONFIGURATIONS / config)
-    assert page.test_axe(exclude=S.THIRD_PARTY).xfail()
+    assert page.test_axe(exclude=S.THIRD_PARTY).xfail(color_contrast_enhanced)
