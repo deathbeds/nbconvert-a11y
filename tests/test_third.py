@@ -15,7 +15,6 @@ from nbconvert_a11y.axe.axe_exceptions import (
     color_contrast,
     color_contrast_enhanced,
     focus_order_semantics,
-    region,
 )
 from nbconvert_a11y.test_utils import SELECTORS as S
 from tests.conftest import CONFIGURATIONS, NOTEBOOKS
@@ -31,7 +30,7 @@ class DefaultTemplate(TestCase):
     # then incrementally explain them in smaller tests.
     # @mark.xfail(reason="there are problems in multiple upstreams.", raises=ExpectedFail)
     def xfail_all(self):
-        self.page.test_axe().xfail(color_contrast, color_contrast_enhanced, focus_order_semantics, region)
+        self.page.test_axe().xfail(color_contrast, color_contrast_enhanced, focus_order_semantics)
 
     # @mark.xfail(reason="a different theme is needed.", raises=ExpectedFail)
     def xfail_pygments_highlight_default(self):
