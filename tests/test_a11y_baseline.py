@@ -23,4 +23,4 @@ def test_axe(page, config, nb):
     """
 
     page.from_notebook(NOTEBOOKS / nb, CONFIGURATIONS / config)
-    assert page.test_axe(exclude=S.THIRD_PARTY).xfail(color_contrast_enhanced)
+    assert page.test_axe(exclude=S.THIRD_PARTY).xfail()
