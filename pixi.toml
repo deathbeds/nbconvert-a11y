@@ -118,3 +118,6 @@ inputs = [
 ]
 outputs = ["dist/nbconvert_a11y-*.tar.gz", "dist/nbconvert_a11y-*.whl"]
 cmd = "rm -rf dist && pyproject-build . -vv"
+
+[feature.test.dependencies]
+pytest-asyncio = ">=0.14.0,<0.24"
