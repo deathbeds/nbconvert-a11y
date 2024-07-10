@@ -1,0 +1,74 @@
+{
+    "grid": {
+        "table": "grid",
+        "thead": "rowgroup",
+        "tbody": "rowgroup",
+        "tfoot": "rowgroup",
+        "tr": "row",
+        "th": {
+            "row": "rowheader",
+            "col": "colheader"
+        },
+        "td": "gridcell"
+    },
+    "treegrid": {
+        "table": "grid",
+        "thead": "rowgroup",
+        "tbody": "rowgroup",
+        "tfoot": "rowgroup",
+        "tr": "row",
+        "th": {
+            "row": "rowheader",
+            "col": "colheader"
+        },
+        "td": "gridcell"
+    },
+    "table": {
+        "table": "table",
+        "thead": "rowgroup",
+        "tbody": "rowgroup",
+        "tfoot": "rowgroup",
+        "tr": "row",
+        "th": {
+            "row": "rowheader",
+            "col": "colheader"
+        },
+        "td": "cell"
+    },
+    "list": {
+        "table": "list",
+        "thead": "group",
+        "tbody": "group",
+        "tfoot": "group",
+        "tr": "listitem",
+        "th": {
+            "row": "none",
+            "col": "none"
+        },
+        "td": "none"
+    },
+    "region": {
+        "table": "none",
+        "thead": "none",
+        "tbody": "none",
+        "tfoot": "none",
+        "tr": "region",
+        "th": {
+            "row": "none",
+            "col": "none"
+        },
+        "td": "none"
+    },
+    "none": {
+        "table": "none",
+        "thead": "none",
+        "tbody": "none",
+        "tfoot": "none",
+        "tr": "none",
+        "th": {
+            "row": "none",
+            "col": "none"
+        },
+        "td": "none"
+    }
+}

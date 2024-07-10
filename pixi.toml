@@ -13,16 +13,23 @@ platforms = ["linux-64", "osx-64", "win-64", "osx-arm64"]
 depends-on = ["pip", "install-axe", "pw-install-ff"]
 inputs = [
   "pyproject.toml",
-  "{tests,nbconvert-a11y}/*.py",
-  "{tests,nbconvert-a11y}/**/*.py",
+  "{tests,nbconvert_a11y}/*.py",
+  "{tests,nbconvert_a11y}/**/*.py",
 ]
-cmd = """pip install -e. --no-deps --ignore-installed --disable-pip-version-check 
-  &&  PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers pytest --browser firefox"""
+cmd = """PLAYWRIGHT_BROWSERS_PATH=.pixi/.local-browsers pytest --browser firefox"""
 
 
 [feature.test-axe.tasks.install-axe]
-outputs = ["node_modules/axe-core"]
-cmd = "npm install axe-core"
+inputs = ["package.json"]
+outputs = ["node_modules/axe-core", "package-lock.json"]
+cmd = "npm install"
+
+[feature.test-axe.tasks.vendor-axe]
+depends-on = ["install-axe"]
+inputs = ["package-lock.json"]
+outputs = ["nbconvert_a11y/axe/axe-core"]
+cmd = "cp node_modules/axe-core nbconvert_a11y/axe/axe-core/"
+
 
 [feature.test-axe.tasks.pw-install-ff]
 outputs = [".pixi/.local-browsers/firefox-*"]
@@ -43,8 +50,8 @@ mkdocstrings = ">=0.25.1,<0.26"
 [feature.docs.tasks.build]
 inputs = [
   "mkdocs.yml",
-  "{tests,nbconvert-a11y}/*.{ipynb,md,py}",
-  "{tests,nbconvert-a11y}/**/*.{ipynb,md,py}",
+  "{tests,nbconvert_a11y}/*.{ipynb,md,py}",
+  "{tests,nbconvert_a11y}/**/*.{ipynb,md,py}",
 ]
 outputs = ["site"]
 cmd = "mkdocs build -v"
@@ -89,7 +96,7 @@ docs = { features = ["docs"], solve-group = "default" }
 
 
 [tasks.pip]
-inputs = ["pyproject.toml"]
+inputs = ["pyproject.toml", "nbconvert_a11y/templates"]
 outputs = ["build/pip-freeze/*.txt"]
 cmd = """
   python -m pip install -vv --no-deps --ignore-installed --disable-pip-version-check

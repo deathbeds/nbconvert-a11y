@@ -11,7 +11,7 @@ from functools import lru_cache
 from json import dumps, loads
 from pathlib import Path
 from subprocess import PIPE, check_output
-from playwright.async_api import Page
+from playwright.async_api import Page, Locator, async_playwright
 
 from nbconvert_a11y.axe.types import AxeOptions
 
@@ -58,6 +58,11 @@ async def validate_html(html: str) -> dict:
     _, stderr = await process.communicate(html.encode())
     return loads(stderr)
 
+async def validate_axe(html: str, **config):
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch()
+        page = await browser.new_page()
+        return await pw_axe(page, **config)
 
 async def pw_validate_html(page):
     return await validate_html(await page.outer_html())
