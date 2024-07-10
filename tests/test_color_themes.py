@@ -1,31 +1,42 @@
+from time import sleep
 from pytest import fixture
 
+from nbconvert_a11y.axe.axe_exceptions import color_contrast_enhanced
 from nbconvert_a11y.exporter import THEMES
-from nbconvert_a11y.pytest_axe import Axe
+from tests.conftest import CONFIGURATIONS, NOTEBOOKS
+from playwright.sync_api import expect
+import nbconvert_a11y.test_utils
 
 LORENZ = "lorenz-executed.ipynb"
 
 
 @fixture(params=list(THEMES))
-def lorenz(page, request, notebook):
-    return Axe(
-        page=page,
-        url=notebook(
-            "a11y", LORENZ, color_theme=request.param, include_settings=True, wcag_priority="AA"
-        ),
-    ).configure()
+def lorenz(page, request):
+    nb, config = NOTEBOOKS / LORENZ, CONFIGURATIONS / "a11y.py"
+    page.from_notebook(
+        nb, config, color_theme=request.param, include_settings=True, wcag_priority="AA"
+    )
+    return page
 
 
 def test_dark_themes(lorenz):
-    lorenz.page.click("""[aria-controls="nb-settings"]""")
-    lorenz.page.locator("select[name=color-scheme]").select_option("dark mode")
-    lorenz.page.keyboard.press("Escape")
-    # force the background to be black because axe detects a white background in dark mode.
-    lorenz.page.eval_on_selector("body", """x => x.style.backgroundColor = `#000000`""")
-    lorenz.run(dict(include=[".nb-source"])).raises()
+    lorenz.click("""[aria-controls="nb-settings"]""")
+    lorenz.locator("select[name=color-scheme]").select_option("dark mode")
+    lorenz.keyboard.press("Escape")
+    _test_no_textarea(lorenz)
+    # verify the themes are consistent
+    assert lorenz.locator(f"#nb-light-highlight").get_attribute("media") == "not screen"
+    assert lorenz.test_axe(dict(include=[".nb-source"])).xfail(color_contrast_enhanced)
     # accessible pygments disclsoes that we should expect some color contrast failures on some themes.
     # there isnt much code which might not generate enough conditions to create color contrast issues.
 
 
 def test_light_themes(lorenz):
-    lorenz.run(dict(include=[".nb-source"])).raises()
+    _test_no_textarea(lorenz)
+    assert lorenz.locator(f"#nb-dark-highlight").get_attribute("media") == "not screen"
+    assert lorenz.test_axe(dict(include=[".nb-source"])).xfail()
+
+
+def _test_no_textarea(page):
+    for element in page.locator("textarea.nb-source").all():
+        expect(element).not_to_be_visible()
